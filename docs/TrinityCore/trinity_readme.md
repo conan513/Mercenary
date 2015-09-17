@@ -34,77 +34,80 @@ Put this in src/server/shared/Database/Implementation/CharacterDatabase.cpp:
     PrepareStatement(CHAR_UPD_MERCENARY_GEAR, "UPDATE mercenary_gear SET itemId=? WHERE guid=? AND slot=?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_UPD_MERCENARY_NAME, "UPDATE mercenaries SET name=? WHERE Id=? and ownerGUID=?", CONNECTION_ASYNC);
 
------------------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##Player.cpp
+
 * Go to: src/server/game/Entities/Player.cpp
-- Include MercenaryMgr header: #include "MercenaryMgr.h"
+Include MercenaryMgr header: #include "MercenaryMgr.h"
 
 * Find: void Player::SaveToDB(bool create /*=false*/)
-- At the bottom of the function add the following code:
+At the bottom of the function add the following code:
+
     sMercenaryMgr->UpdateGear(this);
 
------------------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##Pet.cpp
+
 * Go to: src/server/game/Entities/Pet.cpp
 * Search for: void Pet::SavePetToDB(PetSaveMode mode)
-- Add the code below, below 'GetEntry()' if statement: 
+Add the code below, below 'GetEntry()' if statement: 
 
     if (GetScriptName() == "mercenary_bot")
         return;
 
------------------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##CreatureAISelector.cpp
+
 * Find CreatureAISelector.cpp (src\server\game\AI\)
 * Search for this code: if (creature->IsPet())
-- And change it to: if (creature->IsPet() && creature->GetScriptName() != "mercenary_bot")
+And change it to: if (creature->IsPet() && creature->GetScriptName() != "mercenary_bot")
 
------------------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##ItemDisplayInfo Addition (DBCStores.cpp, DBCStores.h, DBCStructure.h, DBCFmt.h)
+
 * Go to: src/server/game/DataStores/DBCStores.cpp
-- Uncomment: DBCStorage <ItemDisplayInfoEntry> sItemDisplayInfoStore(ItemDisplayTemplateEntryfmt);
-- Next, uncomment: LoadDBC(dbcCount, availableDbcLocales, bad_dbc_files, sItemDisplayInfoStore,        dbcPath, "ItemDisplayInfo.dbc");
+Uncomment: DBCStorage <ItemDisplayInfoEntry> sItemDisplayInfoStore(ItemDisplayTemplateEntryfmt);
+Next, uncomment: LoadDBC(dbcCount, availableDbcLocales, bad_dbc_files, sItemDisplayInfoStore,        dbcPath, "ItemDisplayInfo.dbc");
 
 * After uncommenting "LoadDBC" remove "dbcCount" argument. It should look like this now:
-- LoadDBC(availableDbcLocales, bad_dbc_files, sItemDisplayInfoStore,        dbcPath, "ItemDisplayInfo.dbc");
+LoadDBC(availableDbcLocales, bad_dbc_files, sItemDisplayInfoStore,        dbcPath, "ItemDisplayInfo.dbc");
 
 * Go to: src/server/game/DataStores/DBCStores.h
-- Uncomment: extern DBCStorage <ItemDisplayInfoEntry>      sItemDisplayInfoStore;
+Uncomment: extern DBCStorage <ItemDisplayInfoEntry>      sItemDisplayInfoStore;
 
 * Go to: src/server/game/DataStores/DBCStructure.h
 * Search for: struct ItemDisplayInfoEntry
-- Once you found it add: char* inventoryIcon; under uint32      ID;
+Once you found it add: char* inventoryIcon; under uint32      ID;
 
 * Go to: src/server/game/DataStores/DBCfmt.h
-- Uncomment: char const ItemDisplayTemplateEntryfmt[] = "nxxxxxxxxxxixxxxxxxxxxx";
-- And replace the entire line of code with: char const ItemDisplayTemplateEntryfmt[] = "nxxxxsxxxxxxxxxxxxxxxxxxx";
+Uncomment: char const ItemDisplayTemplateEntryfmt[] = "nxxxxxxxxxxixxxxxxxxxxx";
+And replace the entire line of code with: char const ItemDisplayTemplateEntryfmt[] = "nxxxxsxxxxxxxxxxxxxxxxxxx";
 
------------------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+##SpellIconEntry Addition (DBCStores.cpp, DBCStores.h, DBCStructure.h, DBCFmt.h)
+
 * Go to: src/server/game/DataStores/DBCStores.cpp
-- Add the following code on top of the file where the rest of the similar code is: DBCStorage <SpellIconEntry> sSpellIconStore(SpellIconEntryfmt);
-* Still in the same file, find this function: void LoadDBCStores(const std::string& dataPath)
-- Add the following code in the function: LoadDBC(availableDbcLocales, bad_dbc_files, sSpellIconStore,              dbcPath, "SpellIcon.dbc");
+Add the following code on top of the file where the rest of the similar code is: DBCStorage <SpellIconEntry> sSpellIconStore(SpellIconEntryfmt);
+Still in the same file, find this function: void LoadDBCStores(const std::string& dataPath)
+Add the following code in the function: LoadDBC(availableDbcLocales, bad_dbc_files, sSpellIconStore,              dbcPath, "SpellIcon.dbc");
 
 * Go to: src/server/game/DataStores/DBCStores.h
-- Add the following code: extern DBCStorage <SpellIconEntry>               sSpellIconStore;
+Add the following code: extern DBCStorage <SpellIconEntry>               sSpellIconStore;
 
 * Go to: src/server/game/DataStores/DBCStructure.h
-- Add the following code:
+Add the following code:
 
-struct SpellIconEntry
-{
-    uint32 ID;                                              // 0
-    char* spellIcon;                                        // 1
-};
+    struct SpellIconEntry
+    {
+        uint32 ID;                                              // 0
+        char* spellIcon;                                        // 1
+    };
 
 Go to: src/server/game/DataStores/DBCfmt.h
 Add the following code: char const SpellIconEntryfmt[] = "ns";
 
------------------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+##Creature.cpp
+
 * Go to: src/server/game/Entities/Creature/Creature.cpp
 * Search for: bool Creature::InitEntry(uint32 entry, CreatureData const* data /*= nullptr*/)
-- Once you've found that function, go to line 311 and add:
+Once you've found that function, go to line 311 and add:
 
     if (GetScriptName() == "mercenary_bot")
         SetFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_MIRROR_IMAGE);
@@ -113,23 +116,25 @@ Add the following code: char const SpellIconEntryfmt[] = "ns";
 		
 * Go to: src/server/game/Entities/Creature/Creature.cpp
 * Search for: bool Creature::UpdateEntry(uint32 entry, CreatureData const* data /*= nullptr*/)
-- Once you've found that function, search for (in the function above): SetUInt32Value(UNIT_FIELD_FLAGS_2, cInfo->unit_flags2);
-- And replace it with:
+Once you've found that function, search for (in the function above): SetUInt32Value(UNIT_FIELD_FLAGS_2, cInfo->unit_flags2);
+And replace it with:
 
     if (GetScriptName() == "mercenary_bot")
         SetUInt32Value(UNIT_FIELD_FLAGS_2, cInfo->unit_flags2 | UNIT_FLAG2_MIRROR_IMAGE);
     else
         SetUInt32Value(UNIT_FIELD_FLAGS_2, cInfo->unit_flags2);
 		
------------------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+##SpellHandler.cpp
+
 * Go to: src/server/game/Handlers/SpellHandler.cpp
 * Search for: void WorldSession::HandleMirrorImageDataRequest(WorldPacket& recvData)
-- And on line 586, below:
+And on line 586, below:
     if (!unit)
         return;
 
-- Paste the following code:
+Paste the following code:
 
     if (Pet* pet = unit->ToPet())
     {
@@ -167,19 +172,21 @@ Add the following code: char const SpellIconEntryfmt[] = "ns";
 
 * Lastly, go to: src/server/game/Server/WorldSession.cpp
 * Press Ctrl+G and put in line number 1368. You should jump to that line.
-- Afterwards, insert this case:
+Afterwards, insert this case:
 
         case CMSG_GET_MIRRORIMAGE_DATA:                 // not profiled
 
------------------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		
+##MiscHandler.cpp
+
 * Go to: src/server/game/Handlers/MiscHandler.cpp
 * Search for: void WorldSession::HandleGossipSelectOptionOpcode(WorldPacket& recvData)
-- Inside of that function, search for: if (guid.IsCreatureOrVehicle())
-- And change it to: if ((guid.IsCreatureOrVehicle() || guid.IsCreatureOrPet()))
+Inside of that function, search for: if (guid.IsCreatureOrVehicle())
+And change it to: if ((guid.IsCreatureOrVehicle() || guid.IsCreatureOrPet()))
 
------------------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+##StatSystem.cpp
+
 * Go to: src/server/game/Entities/Unit/StatSystem.cpp
 * Search for these functions:
  * bool Guardian::UpdateStats(Stats stat)
@@ -190,12 +197,12 @@ Add the following code: char const SpellIconEntryfmt[] = "ns";
  * void Guardian::UpdateAttackPowerAndDamage(bool ranged)
  * void Guardian::UpdateDamagePhysical(WeaponAttackType attType)
 
-- And add the code below to the BOOLEAN (bool) functions on top of the functions:
+And add the code below to the BOOLEAN (bool) functions on top of the functions:
 
     if (GetScriptName() == "mercenary_bot")
         return false;
 
-- And lastly add the code below to the VOID (void) functions on top of the functions:
+And lastly add the code below to the VOID (void) functions on top of the functions:
 
     if (GetScriptName() == "mercenary_bot")
         return;

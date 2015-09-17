@@ -15,8 +15,8 @@ This system is still in development and there will be bugs. You can report issue
 
 This system requires core changes. View the appropriate documentation (links below) to begin implementing this system.
 
-[MaNGOS Documentation](https://github.com/EmuDevs/Mercenary/blob/master/docs/Mangos/mangos_readme.md)
-[TrinityCore Documentation](https://github.com/EmuDevs/Mercenary/blob/master/docs/TrinityCore/trinity_readme.md)
+* [MaNGOS Documentation](https://github.com/EmuDevs/Mercenary/blob/master/docs/Mangos/mangos_readme.md)
+* [TrinityCore Documentation](https://github.com/EmuDevs/Mercenary/blob/master/docs/TrinityCore/trinity_readme.md)
 
 ##Links
 * [Mercenary Source] (https://github.com/EmuDevs/Mercenary)
