@@ -1,0 +1,61 @@
+diff --git a/src/server/game/DataStores/DBCStores.cpp b/src/server/game/DataStores/DBCStores.cpp
+index e085454..ab5d554 100644
+--- a/src/server/game/DataStores/DBCStores.cpp
++++ b/src/server/game/DataStores/DBCStores.cpp
+@@ -163,6 +163,7 @@ DBCStorage <SoundEntriesEntry> sSoundEntriesStore(SoundEntriesfmt);
+ DBCStorage <SpellItemEnchantmentEntry> sSpellItemEnchantmentStore(SpellItemEnchantmentfmt);
+ DBCStorage <SpellItemEnchantmentConditionEntry> sSpellItemEnchantmentConditionStore(SpellItemEnchantmentConditionfmt);
+ DBCStorage <SpellEntry> sSpellStore(SpellEntryfmt);
++DBCStorage <SpellIconEntry> sSpellIconStore(SpellIconEntryfmt);
+ SpellCategoryStore sSpellsByCategoryStore;
+ PetFamilySpellsStore sPetFamilySpellsStore;
+ 
+@@ -467,6 +468,7 @@ void LoadDBCStores(const std::string& dataPath)
+         }
+     }
+ 
++    LoadDBC(availableDbcLocales, bad_dbc_files, sSpellIconStore,              dbcPath, "SpellIcon.dbc");
+     LoadDBC(availableDbcLocales, bad_dbc_files, sSpellCastTimesStore,         dbcPath, "SpellCastTimes.dbc");
+     LoadDBC(availableDbcLocales, bad_dbc_files, sSpellCategoryStore,          dbcPath, "SpellCategory.dbc");
+     LoadDBC(availableDbcLocales, bad_dbc_files, sSpellDifficultyStore,        dbcPath, "SpellDifficulty.dbc", &CustomSpellDifficultyfmt, &CustomSpellDifficultyIndex);
+diff --git a/src/server/game/DataStores/DBCStores.h b/src/server/game/DataStores/DBCStores.h
+index 34bf26e..647ff52 100644
+--- a/src/server/game/DataStores/DBCStores.h
++++ b/src/server/game/DataStores/DBCStores.h
+@@ -172,6 +172,7 @@ extern DBCStorage <SpellRangeEntry>              sSpellRangeStore;
+ extern DBCStorage <SpellRuneCostEntry>           sSpellRuneCostStore;
+ extern DBCStorage <SpellShapeshiftEntry>         sSpellShapeshiftStore;
+ extern DBCStorage <SpellEntry>                   sSpellStore;
++extern DBCStorage <SpellIconEntry>               sSpellIconStore;
+ extern DBCStorage <StableSlotPricesEntry>        sStableSlotPricesStore;
+ extern DBCStorage <SummonPropertiesEntry>        sSummonPropertiesStore;
+ extern DBCStorage <TalentEntry>                  sTalentStore;
+diff --git a/src/server/game/DataStores/DBCStructure.h b/src/server/game/DataStores/DBCStructure.h
+index 9ace6cc..be3bde3 100644
+--- a/src/server/game/DataStores/DBCStructure.h
++++ b/src/server/game/DataStores/DBCStructure.h
+@@ -1743,6 +1743,12 @@ struct SpellEntry
+     //uint32  SpellDifficultyId;                            // 233      3.3.0
+ };
+ 
++struct SpellIconEntry
++{
++    uint32 ID;                                              // 0
++    char* spellIcon;                                        // 1
++};
++
+ typedef std::set<uint32> SpellCategorySet;
+ typedef std::map<uint32, SpellCategorySet > SpellCategoryStore;
+ typedef std::set<uint32> PetFamilySpellsSet;
+diff --git a/src/server/game/DataStores/DBCfmt.h b/src/server/game/DataStores/DBCfmt.h
+index 1dd02cf..2c59d6a 100644
+--- a/src/server/game/DataStores/DBCfmt.h
++++ b/src/server/game/DataStores/DBCfmt.h
+@@ -111,6 +111,7 @@ char const SpellDurationfmt[] = "niii";
+ char const SpellEntryfmt[] = "niiiiiiiiiiiixixiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiifxiiiiiiiiiiiiiiiiiiiiiiiiiiiifffiiiiiiiiiiiiiiiiiiiiifffiiiiiiiiiiiiiiifffiiiiiiiiiiiiixssssssssssssssssxssssssssssssssssxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxiiiiiiiiiiixfffxxxiiiiixxfffxx";
+ const std::string CustomSpellEntryfmt = "papppppppppppapapaaaaaaaaaaapaaapapppppppaaaaapaapaaaaaaaaaaaaaaaaaappppppppppppppppppppppppppppppppppppaaappppppppppppaaapppppppppaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaappppppppapppaaaaappaaaaaaa";
+ const std::string CustomSpellEntryIndex = "Id";
++char const SpellIconEntryfmt[] = "ns";
+ char const SpellFocusObjectfmt[] = "nxxxxxxxxxxxxxxxxx";
+ char const SpellItemEnchantmentfmt[] = "nxiiiiiixxxiiissssssssssssssssxiiiiiii";
+ char const SpellItemEnchantmentConditionfmt[] = "nbbbbbxxxxxbbbbbbbbbbiiiiiXXXXX";

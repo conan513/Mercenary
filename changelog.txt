@@ -1,0 +1,45 @@
+9/17/2015
+General
+- Ported to MaNGOS. System now supports MaNGOS and TrinityCore. Ready for public release now.
+- Rewrote all documentation.
+- Added UpdateGear and OnSummon methods to MercenaryMgr for simplification in mercenary_gossip.cpp or other places it will be called.
+- Added CreatureInfo check in Mercenary::InitStats since it was missing one.
+- Reworked how Gear and Actions were loading. This fixes a crash.
+- Corrected some code placement logic
+- Moved MERCENARY_DEFAULT_ENTRY to Mercenary.h
+- Removed x, y, z, o parameters from Mercenary::Create and Mercenary::Summon functions since Player is a parameter.
+- Removed unused ItemTemplate variable.
+- Removed unused switch statement.
+- Removed TrinityCore WorldScript OnUpdate hook and moved Mercenary saving to Player.cpp when players save.
+- Cleaned some comments.
+
+Fixes
+- Fixed not being able to equip weapons for real this time, because of the level check.
+- Fixed a MaNGOS crash in Mercenary::UpdateStats Mercenaries did not have an owner yet. This could also be a potential fix for TrinityCore.
+- Fixed a MaNGOS crash because of a bad check when loading Mercenaries. This could also be a potential fix for TrinityCore.
+
+9/16/2015
+General
+- Updated most of the code to C++11 style
+- Added a new randomizer after discovering using rand() is potentially bad. Thanks to Jameyboor and Stackoverflow. New Random class can be found in MercenaryMgr header
+- mercenary_actions and mercenary_spells table structures changed. Don't forget to apply the new data.
+- Spell name will now show with its icon
+- You can now change your Mercenary's name. This currently requires you to relog to see the change.
+- Removed OnLogout player hook since the new Pet.cpp edit will prevent your Mercenary from saving into the character_pet table. This also fixes many issues if the data from character_pet wasn't removed and you tried to resummon your Mercenary.
+- Moved almost all 'SetX' methods to the header and cleaned what was left in Mercenary source file.
+- Removed Events enumerator
+- Removed 'Mercenary' from more methods names.
+- Removed unused param in EquipItem error message
+
+Actions/AI
+- Actions are now implemented (not fully yet)
+- Mercenary action amount is based on MERCENARY_MAX_ACTIONS value, default 5 actions.
+- You can now create actions through your Mercenary. First, fill mercenary_spells with appropriate data, along with a valid spell entry. Afterwards, you will be able to select the spell in the gossip menu after selecting 'Change Actions'. Each spell you setup, you will be allowed to set its cast time, when to cast at health percentage, heal percentage, etc. TODO: After selecting for example: Cast every 5 seconds, the next spell you setup the option will not be available.
+- If you quit creating an action for your Mercenary, the selected data will be reset and you'll have to start over.
+- Changed ActionContainer to a vector from a map
+
+Fixes
+- Fixed Mercenary not returning to you if you go too far away or somehow make them despawn. You can go to a new map or new area OR relog to bring your Mercenary back to you.
+- Fixed spell icon not showing in the gossip menu.
+- Fixed Mercenary actions spamming more than once using EventMap. Removed EventMap and started to use a timer array for each action setup
+- Fixed Item not able to equip if it doesn't have a level. Also fixed the item level check in general

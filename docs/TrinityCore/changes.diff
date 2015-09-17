@@ -1,0 +1,365 @@
+// File: src/server/game/Entities/Pet.cpp
+@@ -372,10 +372,13 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petEntry, uint32 petnumber, bool c
+ void Pet::SavePetToDB(PetSaveMode mode)
+ {
+     if (!GetEntry())
+         return;
+ 
++    if (GetScriptName() == "mercenary_bot")
++        return;
++
+     // save only fully controlled creature
+     if (!isControlled())
+         return;
+ 
+     // not save not player pets
+
+// File: src/server/game/AI/CreatureAISelector.cpp
+@ -30,11 +30,11 @@ namespace FactorySelector
+     CreatureAI* selectAI(Creature* creature)
+     {
+         const CreatureAICreator* ai_factory = NULL;
+         CreatureAIRegistry& ai_registry(*CreatureAIRegistry::instance());
+ 
+-        if (creature->IsPet())
++        if (creature->IsPet() && creature->GetScriptName() != "mercenary_bot")
+             ai_factory = ai_registry.GetRegistryItem("PetAI");
+ 
+         //scriptname in db
+         if (!ai_factory)
+             if (CreatureAI* scriptedAI = sScriptMgr->GetCreatureAI(creature))
+
+// File: src/server/game/DataStores/DBCStores.cpp			 
+@@ -117,11 +117,11 @@ DBCStorage <GtRegenMPPerSptEntry>         sGtRegenMPPerSptStore(GtRegenMPPerSptf
+ DBCStorage <HolidaysEntry>                sHolidaysStore(Holidaysfmt);
+ 
+ DBCStorage <ItemEntry>                    sItemStore(Itemfmt);
+ DBCStorage <ItemBagFamilyEntry>           sItemBagFamilyStore(ItemBagFamilyfmt);
+ //DBCStorage <ItemCondExtCostsEntry> sItemCondExtCostsStore(ItemCondExtCostsEntryfmt);
+-//DBCStorage <ItemDisplayInfoEntry> sItemDisplayInfoStore(ItemDisplayTemplateEntryfmt); -- not used currently
++DBCStorage <ItemDisplayInfoEntry> sItemDisplayInfoStore(ItemDisplayTemplateEntryfmt);
+ DBCStorage <ItemExtendedCostEntry> sItemExtendedCostStore(ItemExtendedCostEntryfmt);
+ DBCStorage <ItemLimitCategoryEntry> sItemLimitCategoryStore(ItemLimitCategoryEntryfmt);
+ DBCStorage <ItemRandomPropertiesEntry> sItemRandomPropertiesStore(ItemRandomPropertiesfmt);
+ DBCStorage <ItemRandomSuffixEntry> sItemRandomSuffixStore(ItemRandomSuffixfmt);
+ DBCStorage <ItemSetEntry> sItemSetStore(ItemSetEntryfmt);
+@@ -376,11 +376,11 @@ void LoadDBCStores(const std::string& dataPath)
+ 
+     LoadDBC(availableDbcLocales, bad_dbc_files, sHolidaysStore,               dbcPath, "Holidays.dbc");
+ 
+     LoadDBC(availableDbcLocales, bad_dbc_files, sItemStore,                   dbcPath, "Item.dbc");
+     LoadDBC(availableDbcLocales, bad_dbc_files, sItemBagFamilyStore,          dbcPath, "ItemBagFamily.dbc");
+-    //LoadDBC(dbcCount, availableDbcLocales, bad_dbc_files, sItemDisplayInfoStore,        dbcPath, "ItemDisplayInfo.dbc");     -- not used currently
++    LoadDBC(availableDbcLocales, bad_dbc_files, sItemDisplayInfoStore,        dbcPath, "ItemDisplayInfo.dbc");
+     //LoadDBC(dbcCount, availableDbcLocales, bad_dbc_files, sItemCondExtCostsStore,       dbcPath, "ItemCondExtCosts.dbc");
+     LoadDBC(availableDbcLocales, bad_dbc_files, sItemExtendedCostStore,       dbcPath, "ItemExtendedCost.dbc");
+     LoadDBC(availableDbcLocales, bad_dbc_files, sItemLimitCategoryStore,      dbcPath, "ItemLimitCategory.dbc");
+     LoadDBC(availableDbcLocales, bad_dbc_files, sItemRandomPropertiesStore,   dbcPath, "ItemRandomProperties.dbc");
+     LoadDBC(availableDbcLocales, bad_dbc_files, sItemRandomSuffixStore,       dbcPath, "ItemRandomSuffix.dbc");
+	 
+	
+// File: src/server/game/DataStores/DBCStores.h
+@@ -130,11 +130,11 @@ extern DBCStorage <GtOCTRegenHPEntry>            sGtOCTRegenHPStore;
+ extern DBCStorage <GtRegenHPPerSptEntry>         sGtRegenHPPerSptStore;
+ extern DBCStorage <GtRegenMPPerSptEntry>         sGtRegenMPPerSptStore;
+ extern DBCStorage <HolidaysEntry>                sHolidaysStore;
+ extern DBCStorage <ItemEntry>                    sItemStore;
+ extern DBCStorage <ItemBagFamilyEntry>           sItemBagFamilyStore;
+-//extern DBCStorage <ItemDisplayInfoEntry>      sItemDisplayInfoStore; -- not used currently
++extern DBCStorage <ItemDisplayInfoEntry>      sItemDisplayInfoStore;
+ extern DBCStorage <ItemExtendedCostEntry>        sItemExtendedCostStore;
+ extern DBCStorage <ItemLimitCategoryEntry>       sItemLimitCategoryStore;
+ extern DBCStorage <ItemRandomPropertiesEntry>    sItemRandomPropertiesStore;
+ extern DBCStorage <ItemRandomSuffixEntry>        sItemRandomSuffixStore;
+ extern DBCStorage <ItemSetEntry>                 sItemSetStore;
+
+// File: src/server/game/DataStores/DBCStructure.h
+@@ -1170,11 +1170,11 @@ struct ItemBagFamilyEntry
+ struct ItemDisplayInfoEntry
+ {
+     uint32      ID;                                         // 0        m_ID
+                                                             // 1        m_modelName[2]
+                                                             // 2        m_modelTexture[2]
+-                                                            // 3        m_inventoryIcon
++    char* inventoryIcon;
+
+// File: src/server/game/DataStores/DBCfmt.h
+@@ -71,11 +71,11 @@ char const GtOCTRegenHPfmt[] = "f";
+ char const GtRegenHPPerSptfmt[] = "f";
+ char const GtRegenMPPerSptfmt[] = "f";
+ char const Holidaysfmt[] = "niiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiixxsiix";
+ char const Itemfmt[] = "niiiiiii";
+ char const ItemBagFamilyfmt[] = "nxxxxxxxxxxxxxxxxx";
+-//char const ItemDisplayTemplateEntryfmt[] = "nxxxxxxxxxxixxxxxxxxxxx";
++char const ItemDisplayTemplateEntryfmt[] = "nxxxxsxxxxxxxxxxxxxxxxxxx";
+ //char const ItemCondExtCostsEntryfmt[] = "xiii";
+ char const ItemExtendedCostEntryfmt[] = "niiiiiiiiiiiiiix";
+ char const ItemLimitCategoryEntryfmt[] = "nxxxxxxxxxxxxxxxxxii";
+ char const ItemRandomPropertiesfmt[] = "nxiiixxssssssssssssssssx";
+ char const ItemRandomSuffixfmt[] = "nssssssssssssssssxxiiixxiiixx";
+
+
+// File: src/server/shared/Database/Implementation/CharacterDatabase.cpp
+@@ -609,6 +609,12 @@ void CharacterDatabaseConnection::DoPrepareStatements()
+     // QuestTracker
+     PrepareStatement(CHAR_INS_QUEST_TRACK, "INSERT INTO quest_tracker (id, character_guid, quest_accept_time, core_hash, core_revision) VALUES (?, ?, NOW(), ?, ?)", CONNECTION_ASYNC);
+     PrepareStatement(CHAR_UPD_QUEST_TRACK_GM_COMPLETE, "UPDATE quest_tracker SET completed_by_gm = 1 WHERE id = ? AND character_guid = ? ORDER BY quest_accept_time DESC LIMIT 1", CONNECTION_ASYNC);
+     PrepareStatement(CHAR_UPD_QUEST_TRACK_COMPLETE_TIME, "UPDATE quest_tracker SET quest_complete_time = NOW() WHERE id = ? AND character_guid = ? ORDER BY quest_accept_time DESC LIMIT 1", CONNECTION_ASYNC);
+     PrepareStatement(CHAR_UPD_QUEST_TRACK_ABANDON_TIME, "UPDATE quest_tracker SET quest_abandon_time = NOW() WHERE id = ? AND character_guid = ? ORDER BY quest_accept_time DESC LIMIT 1", CONNECTION_ASYNC);
++
++    /* Mercenary */
++    PrepareStatement(CHAR_INS_MERCENARY, "INSERT INTO mercenaries VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_BOTH);
++    PrepareStatement(CHAR_UPD_MERCENARY_SUMMON, "UPDATE mercenaries SET summoned=? WHERE Id=?", CONNECTION_ASYNC);
++    PrepareStatement(CHAR_INS_MERCENARY_GEAR, "INSERT INTO mercenary_gear (guid, itemId, slot) VALUES (?, ?, ?)", CONNECTION_BOTH);
++    PrepareStatement(CHAR_UPD_MERCENARY_GEAR, "UPDATE mercenary_gear SET itemId=? WHERE guid=? AND slot=?", CONNECTION_ASYNC);
+ }
+
+
+// File: src/server/shared/Database/Implementation/CharacterDatabase.h
+@@ -542,9 +542,14 @@ enum CharacterDatabaseStatements
+     CHAR_INS_QUEST_TRACK,
+     CHAR_UPD_QUEST_TRACK_GM_COMPLETE,
+     CHAR_UPD_QUEST_TRACK_COMPLETE_TIME,
+     CHAR_UPD_QUEST_TRACK_ABANDON_TIME,
+ 
++    CHAR_INS_MERCENARY,
++    CHAR_UPD_MERCENARY_SUMMON,
++    CHAR_INS_MERCENARY_GEAR,
++    CHAR_UPD_MERCENARY_GEAR,
++
+     MAX_CHARACTERDATABASE_STATEMENTS
+ };
+ 
+ #endif
+
+// File: src/server/game/Entities/Creature/Creature.cpp
+ @@ -307,10 +307,15 @@ bool Creature::InitEntry(uint32 entry, CreatureData const* data /*= nullptr*/)
+     {
+         TC_LOG_ERROR("sql.sql", "Creature (Entry: %u) has invalid model %u defined in table `creature_template`, can't load.", entry, displayID);
+         return false;
+     }
+ 
++    if (GetScriptName() == "mercenary_bot")
++        SetFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_MIRROR_IMAGE);
++    else
++        RemoveFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_MIRROR_IMAGE);
++
+     SetDisplayId(displayID);
+     SetNativeDisplayId(displayID);
+     SetByteValue(UNIT_FIELD_BYTES_0, 2, minfo->gender);
+ 
+     // Load creature equipment
+@@ -369,11 +374,14 @@ bool Creature::UpdateEntry(uint32 entry, CreatureData const* data /*= nullptr*/)
+         SetUInt32Value(UNIT_NPC_FLAGS, npcflag | sGameEventMgr->GetNPCFlag(this));
+     else
+         SetUInt32Value(UNIT_NPC_FLAGS, npcflag);
+ 
+     SetUInt32Value(UNIT_FIELD_FLAGS, unit_flags);
+-    SetUInt32Value(UNIT_FIELD_FLAGS_2, cInfo->unit_flags2);
++    if (GetScriptName() == "mercenary_bot")
++        SetUInt32Value(UNIT_FIELD_FLAGS_2, cInfo->unit_flags2 | UNIT_FLAG2_MIRROR_IMAGE);
++    else
++        SetUInt32Value(UNIT_FIELD_FLAGS_2, cInfo->unit_flags2);
+ 
+     SetUInt32Value(UNIT_DYNAMIC_FLAGS, dynamicflags);
+ 
+     RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IN_COMBAT);
+ 
+
+// File: src/server/game/Handlers/SpellHandler.cpp
+@@ -29,10 +29,11 @@
+ #include "ScriptMgr.h"
+ #include "GameObjectAI.h"
+ #include "SpellAuraEffects.h"
+ #include "Player.h"
+ #include "Config.h"
++#include "MercenaryMgr.h"
+ 
+ void WorldSession::HandleClientCastFlags(WorldPacket& recvPacket, uint8 castFlags, SpellCastTargets& targets)
+ {
+     // some spell cast packet including more data (for projectiles?)
+     if (castFlags & 0x02)
+@@ -581,10 +582,44 @@ void WorldSession::HandleMirrorImageDataRequest(WorldPacket& recvData)
+     // Get unit for which data is needed by client
+     Unit* unit = ObjectAccessor::GetObjectInWorld(guid, (Unit*)NULL);
+     if (!unit)
+         return;
+ 
++    if (Pet* pet = unit->ToPet())
++    {
++        Mercenary* mercenary = sMercenaryMgr->GetMercenary(pet->GetCharmInfo()->GetPetNumber());
++        if (mercenary)
++        {
++            WorldPacket data(SMSG_MIRRORIMAGE_DATA, 68);
++            data << uint64(pet->GetGUID());
++            data << uint32(mercenary->GetMercenaryDisplay());
++            data << uint8(mercenary->GetMercenaryRace());
++            data << uint8(mercenary->GetMercenaryGender());
++            data << uint8(1);
++            data << uint8(0); // Skin
++            data << uint8(0); // Face
++            data << uint8(0); // Hair
++            data << uint8(0); // Hair color
++            data << uint8(0); // Facial hair
++            data << uint32(0);
++            data << uint32(sMercenaryMgr->GetItemDisplayId(mercenary->GetItemBySlot(SLOT_HEAD)));
++            data << uint32(sMercenaryMgr->GetItemDisplayId(mercenary->GetItemBySlot(SLOT_SHOULDERS)));
++            data << uint32(0); // Shirt?
++            data << uint32(sMercenaryMgr->GetItemDisplayId(mercenary->GetItemBySlot(SLOT_CHEST)));
++            data << uint32(0); // Waist
++            data << uint32(sMercenaryMgr->GetItemDisplayId(mercenary->GetItemBySlot(SLOT_LEGS)));
++            data << uint32(sMercenaryMgr->GetItemDisplayId(mercenary->GetItemBySlot(SLOT_FEET)));
++            data << uint32(0); // Wrists
++            data << uint32(sMercenaryMgr->GetItemDisplayId(mercenary->GetItemBySlot(SLOT_HANDS)));
++            data << uint32(0); // Cloak
++            data << uint32(0); // Tabard
++
++            SendPacket(&data);
++            return;
++        }
++    }
++
+     if (!unit->HasAuraType(SPELL_AURA_CLONE_CASTER))
+         return;
+ 
+     // Get creator of the unit (SPELL_AURA_CLONE_CASTER does not stack)
+     Unit* creator = unit->GetAuraEffectsByType(SPELL_AURA_CLONE_CASTER).front()->GetCaster();
+
+
+// File: src/server/game/Handlers/MiscHandler.cpp
+@@ -102,11 +102,11 @@ void WorldSession::HandleGossipSelectOptionOpcode(WorldPacket& recvData)
+     if (_player->PlayerTalkClass->GetGossipMenu().GetSenderGUID() != guid)
+         return;
+ 
+     Creature* unit = NULL;
+     GameObject* go = NULL;
+-    if (guid.IsCreatureOrVehicle())
++    if ((guid.IsCreatureOrVehicle() || guid.IsCreatureOrPet()))
+     {
+         unit = GetPlayer()->GetNPCIfCanInteractWith(guid, UNIT_NPC_FLAG_NONE);
+         if (!unit)
+         {
+             TC_LOG_DEBUG("network", "WORLD: HandleGossipSelectOptionOpcode - %s not found or you can't interact with him.", guid.ToString().c_str());
+
+// File: src/server/game/Server/WorldSession.cpp
+@@ -1363,10 +1363,11 @@ uint32 WorldSession::DosProtection::GetMaxPacketCounterAllowed(uint16 opcode) co
+         case CMSG_QUESTGIVER_STATUS_MULTIPLE_QUERY:     //   0               2.5
+         case CMSG_BEGIN_TRADE:                          //   0               2.5
+         case CMSG_INITIATE_TRADE:                       //   0               3
+         case CMSG_MESSAGECHAT:                          //   0               3.5
+         case CMSG_INSPECT:                              //   0               3.5
++        case CMSG_GET_MIRRORIMAGE_DATA:                 // not profiled
+         case CMSG_AREA_SPIRIT_HEALER_QUERY:             // not profiled
+         case CMSG_STANDSTATECHANGE:                     // not profiled
+         case MSG_RANDOM_ROLL:                           // not profiled
+         case CMSG_TIME_SYNC_RESP:                       // not profiled
+         case CMSG_TRAINER_BUY_SPELL:                    // not profiled
+
+		 
+
+// File: src/server/game/Entities/Unit/StatSystem.cpp
+@@ -1104,10 +1104,13 @@ void Creature::CalculateMinMaxDamage(WeaponAttackType attType, bool normalized,
+ bool Guardian::UpdateStats(Stats stat)
+ {
+     if (stat >= MAX_STATS)
+         return false;
+ 
++    if (GetScriptName() == "mercenary_bot")
++        return false;
++
+     // value = ((base_value * base_pct) + total_value) * total_pct
+     float value  = GetTotalStatValue(stat);
+     ApplyStatBuffMod(stat, m_statFromOwner[stat], false);
+     float ownersBonus = 0.0f;
+ 
+@@ -1196,10 +1199,13 @@ bool Guardian::UpdateStats(Stats stat)
+     return true;
+ }
+ 
+ bool Guardian::UpdateAllStats()
+ {
++    if (GetScriptName() == "mercenary_bot")
++        return false;
++
+     for (uint8 i = STAT_STRENGTH; i < MAX_STATS; ++i)
+         UpdateStats(Stats(i));
+ 
+     for (uint8 i = POWER_MANA; i < MAX_POWERS; ++i)
+         UpdateMaxPower(Powers(i));
+@@ -1225,10 +1231,13 @@ void Guardian::UpdateResistances(uint32 school)
+         UpdateArmor();
+ }
+ 
+ void Guardian::UpdateArmor()
+ {
++    if (GetScriptName() == "mercenary_bot")
++        return;
++
+     float value = 0.0f;
+     float bonus_armor = 0.0f;
+     UnitMods unitMod = UNIT_MOD_ARMOR;
+ 
+     // hunter and warlock pets gain 35% of owner's armor value
+@@ -1238,16 +1247,18 @@ void Guardian::UpdateArmor()
+     value  = GetModifierValue(unitMod, BASE_VALUE);
+     value *= GetModifierValue(unitMod, BASE_PCT);
+     value += GetStat(STAT_AGILITY) * 2.0f;
+     value += GetModifierValue(unitMod, TOTAL_VALUE) + bonus_armor;
+     value *= GetModifierValue(unitMod, TOTAL_PCT);
+-
+     SetArmor(int32(value));
+ }
+ 
+ void Guardian::UpdateMaxHealth()
+ {
++    if (GetScriptName() == "mercenary_bot")
++        return;
++
+     UnitMods unitMod = UNIT_MOD_HEALTH;
+     float stamina = GetStat(STAT_STAMINA) - GetCreateStat(STAT_STAMINA);
+ 
+     float multiplicator;
+     switch (GetEntry())
+@@ -1269,10 +1280,13 @@ void Guardian::UpdateMaxHealth()
+     SetMaxHealth((uint32)value);
+ }
+ 
+ void Guardian::UpdateMaxPower(Powers power)
+ {
++    if (GetScriptName() == "mercenary_bot")
++        return;
++
+     UnitMods unitMod = UnitMods(UNIT_MOD_POWER_START + power);
+ 
+     float addValue = (power == POWER_MANA) ? GetStat(STAT_INTELLECT) - GetCreateStat(STAT_INTELLECT) : 0.0f;
+     float multiplicator = 15.0f;
+ 
+@@ -1297,10 +1311,13 @@ void Guardian::UpdateMaxPower(Powers power)
+ void Guardian::UpdateAttackPowerAndDamage(bool ranged)
+ {
+     if (ranged)
+         return;
+ 
++    if (GetScriptName() == "mercenary_bot")
++        return;
++
+     float val = 0.0f;
+     float bonusAP = 0.0f;
+     UnitMods unitMod = UNIT_MOD_ATTACK_POWER;
+ 
+     if (GetEntry() == ENTRY_IMP)                                   // imp's attack power
+@@ -1385,10 +1402,13 @@ void Guardian::UpdateAttackPowerAndDamage(bool ranged)
+ void Guardian::UpdateDamagePhysical(WeaponAttackType attType)
+ {
+     if (attType > BASE_ATTACK)
+         return;
+ 
++    if (GetScriptName() == "mercenary_bot")
++        return;
++
+     float bonusDamage = 0.0f;
+     if (m_owner->GetTypeId() == TYPEID_PLAYER)
+     {
+         //force of nature
+         if (GetEntry() == ENTRY_TREANT)
+
