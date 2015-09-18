@@ -1,10 +1,6 @@
 /*
-    _______ _____  _______ _______ _______
-    |    ___|     \|    ___|   |   |   |   |
-    |    ___|  --  |    ___|       |   |   |
-    |_______|_____/|_______|__|_|__|_______|
     ©2013-2015 EmuDevs <http://www.emudevs.com/>
-    DO NOT REDISTRIBUE! IF I CATCH ANYONE GIVING THIS AWAY, EVERYONE WILL BE REMOVED.
+    MaNGOS <http://getmangos.eu>
 */
 #ifndef MERCENARY_H
 #define MERCENARY_H
