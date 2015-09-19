@@ -17,20 +17,20 @@ Following files goes in src\server\scripts\Custom
 
 * Put this in src/server/shared/Database/Implementation/CharacterDatabase.h (above MAX_CHARACTERDATABASE_STATEMENTS):
 
-    CHAR_INS_MERCENARY,
-    CHAR_UPD_MERCENARY_SUMMON,
-    CHAR_INS_MERCENARY_GEAR,
-    CHAR_UPD_MERCENARY_GEAR,
-    CHAR_UPD_MERCENARY_NAME
+        CHAR_INS_MERCENARY,
+        CHAR_UPD_MERCENARY_SUMMON,
+        CHAR_INS_MERCENARY_GEAR,
+        CHAR_UPD_MERCENARY_GEAR,
+        CHAR_UPD_MERCENARY_NAME
 
 * Put this in src/server/shared/Database/Implementation/CharacterDatabase.cpp:
 
-	// Mercenary
-    PrepareStatement(CHAR_INS_MERCENARY, "INSERT INTO mercenaries VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_BOTH);
-    PrepareStatement(CHAR_UPD_MERCENARY_SUMMON, "UPDATE mercenaries SET summoned=? WHERE Id=?", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_INS_MERCENARY_GEAR, "INSERT INTO mercenary_gear (guid, itemId, slot) VALUES (?, ?, ?)", CONNECTION_BOTH);
-    PrepareStatement(CHAR_UPD_MERCENARY_GEAR, "UPDATE mercenary_gear SET itemId=? WHERE guid=? AND slot=?", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_UPD_MERCENARY_NAME, "UPDATE mercenaries SET name=? WHERE Id=? and ownerGUID=?", CONNECTION_ASYNC);
+        // Mercenary
+        PrepareStatement(CHAR_INS_MERCENARY, "INSERT INTO mercenaries VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_BOTH);
+        PrepareStatement(CHAR_UPD_MERCENARY_SUMMON, "UPDATE mercenaries SET summoned=? WHERE Id=?", CONNECTION_ASYNC);
+        PrepareStatement(CHAR_INS_MERCENARY_GEAR, "INSERT INTO mercenary_gear (guid, itemId, slot) VALUES (?, ?, ?)", CONNECTION_BOTH);
+        PrepareStatement(CHAR_UPD_MERCENARY_GEAR, "UPDATE mercenary_gear SET itemId=? WHERE guid=? AND slot=?", CONNECTION_ASYNC);
+        PrepareStatement(CHAR_UPD_MERCENARY_NAME, "UPDATE mercenaries SET name=? WHERE Id=? and ownerGUID=?", CONNECTION_ASYNC);
 
 ##Player.cpp
 
@@ -40,96 +40,99 @@ Following files goes in src\server\scripts\Custom
 * Find: void Player::SaveToDB(bool create /*=false*/)
 * Search for:
 
-     if (Pet* pet = GetPet())
-         pet->SavePetToDB(PET_SAVE_AS_CURRENT);
+        if (Pet* pet = GetPet())
+             pet->SavePetToDB(PET_SAVE_AS_CURRENT);
 		 
 * And replace it with:
 
-    if (Pet* pet = GetPet())
-    {
-        pet->SavePetToDB(PET_SAVE_AS_CURRENT);
-        sMercenaryMgr->OnSave(this, pet);
-    }
+        if (Pet* pet = GetPet())
+        {
+            pet->SavePetToDB(PET_SAVE_AS_CURRENT);
+            sMercenaryMgr->OnSave(this, pet);
+        }
 
 ##Pet.cpp
 
 * Go to: src/server/game/Entities/Pet.cpp
 * Search for: void Pet::SavePetToDB(PetSaveMode mode)
-Add the code below, below 'GetEntry()' if statement: 
+* Add the code below, below 'GetEntry()' if statement: 
 
-    if (GetScriptName() == "mercenary_bot")
-        return;
+        if (GetScriptName() == "mercenary_bot")
+            return;
 
 ##CreatureAISelector.cpp
 
 * Find CreatureAISelector.cpp (src\server\game\AI\)
 * Search for this code: if (creature->IsPet())
-And change it to: if (creature->IsPet() && creature->GetScriptName() != "mercenary_bot")
+* And change it to: 
+
+        if (creature->IsPet() && creature->GetScriptName() != "mercenary_bot")
 
 ##ItemDisplayInfo Addition (DBCStores.cpp, DBCStores.h, DBCStructure.h, DBCFmt.h)
 
 * Go to: src/server/game/DataStores/DBCStores.cpp
-Uncomment: DBCStorage <ItemDisplayInfoEntry> sItemDisplayInfoStore(ItemDisplayTemplateEntryfmt);
-Next, uncomment: LoadDBC(dbcCount, availableDbcLocales, bad_dbc_files, sItemDisplayInfoStore,        dbcPath, "ItemDisplayInfo.dbc");
+* Uncomment: DBCStorage <ItemDisplayInfoEntry> sItemDisplayInfoStore(ItemDisplayTemplateEntryfmt);
+* Next, uncomment: LoadDBC(dbcCount, availableDbcLocales, bad_dbc_files, sItemDisplayInfoStore,        dbcPath, "ItemDisplayInfo.dbc");
 
 * After uncommenting "LoadDBC" remove "dbcCount" argument. It should look like this now:
-LoadDBC(availableDbcLocales, bad_dbc_files, sItemDisplayInfoStore,        dbcPath, "ItemDisplayInfo.dbc");
+
+        LoadDBC(availableDbcLocales, bad_dbc_files, sItemDisplayInfoStore,        dbcPath, "ItemDisplayInfo.dbc");
 
 * Go to: src/server/game/DataStores/DBCStores.h
-Uncomment: extern DBCStorage <ItemDisplayInfoEntry>      sItemDisplayInfoStore;
+* Uncomment: extern DBCStorage <ItemDisplayInfoEntry>      sItemDisplayInfoStore;
 
 * Go to: src/server/game/DataStores/DBCStructure.h
 * Search for: struct ItemDisplayInfoEntry
-Once you found it add: char* inventoryIcon; under uint32      ID;
+* nce you found it add: char* inventoryIcon; under uint32      ID;
 
 * Go to: src/server/game/DataStores/DBCfmt.h
-Uncomment: char const ItemDisplayTemplateEntryfmt[] = "nxxxxxxxxxxixxxxxxxxxxx";
-And replace the entire line of code with: char const ItemDisplayTemplateEntryfmt[] = "nxxxxsxxxxxxxxxxxxxxxxxxx";
+* Uncomment: char const ItemDisplayTemplateEntryfmt[] = "nxxxxxxxxxxixxxxxxxxxxx";
+* And replace the entire line of code with: char const ItemDisplayTemplateEntryfmt[] = "nxxxxsxxxxxxxxxxxxxxxxxxx";
 
 
 ##SpellIconEntry Addition (DBCStores.cpp, DBCStores.h, DBCStructure.h, DBCFmt.h)
 
 * Go to: src/server/game/DataStores/DBCStores.cpp
-Add the following code on top of the file where the rest of the similar code is: DBCStorage <SpellIconEntry> sSpellIconStore(SpellIconEntryfmt);
-Still in the same file, find this function: void LoadDBCStores(const std::string& dataPath)
-Add the following code in the function: LoadDBC(availableDbcLocales, bad_dbc_files, sSpellIconStore,              dbcPath, "SpellIcon.dbc");
+* Add the following code on top of the file where the rest of the similar code is: DBCStorage <SpellIconEntry> sSpellIconStore(SpellIconEntryfmt);
+* Still in the same file, find this function: void LoadDBCStores(const std::string& dataPath)
+* Add the following code in the function: LoadDBC(availableDbcLocales, bad_dbc_files, sSpellIconStore,              dbcPath, "SpellIcon.dbc");
 
 * Go to: src/server/game/DataStores/DBCStores.h
-Add the following code: extern DBCStorage <SpellIconEntry>               sSpellIconStore;
+* Add the following code: extern DBCStorage <SpellIconEntry>               sSpellIconStore;
 
 * Go to: src/server/game/DataStores/DBCStructure.h
-Add the following code:
+* Add the following code:
 
-    struct SpellIconEntry
-    {
-        uint32 ID;                                              // 0
-        char* spellIcon;                                        // 1
-    };
+        struct SpellIconEntry
+        {
+            uint32 ID;                                              // 0
+            char* spellIcon;                                        // 1
+        };
 
-Go to: src/server/game/DataStores/DBCfmt.h
-Add the following code: char const SpellIconEntryfmt[] = "ns";
+* Go to: src/server/game/DataStores/DBCfmt.h
+* Add the following code: char const SpellIconEntryfmt[] = "ns";
 
 
 ##Creature.cpp
 
 * Go to: src/server/game/Entities/Creature/Creature.cpp
 * Search for: bool Creature::InitEntry(uint32 entry, CreatureData const* data /*= nullptr*/)
-Once you've found that function, go to line 311 and add:
+* Once you've found that function, go to line 311 and add:
 
-    if (GetScriptName() == "mercenary_bot")
-        SetFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_MIRROR_IMAGE);
-    else
-        RemoveFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_MIRROR_IMAGE);
+        if (GetScriptName() == "mercenary_bot")
+            SetFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_MIRROR_IMAGE);
+        else
+            RemoveFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_MIRROR_IMAGE);
 		
 * Go to: src/server/game/Entities/Creature/Creature.cpp
 * Search for: bool Creature::UpdateEntry(uint32 entry, CreatureData const* data /*= nullptr*/)
-Once you've found that function, search for (in the function above): SetUInt32Value(UNIT_FIELD_FLAGS_2, cInfo->unit_flags2);
-And replace it with:
+* Once you've found that function, search for (in the function above): SetUInt32Value(UNIT_FIELD_FLAGS_2, cInfo->unit_flags2);
+* And replace it with:
 
-    if (GetScriptName() == "mercenary_bot")
-        SetUInt32Value(UNIT_FIELD_FLAGS_2, cInfo->unit_flags2 | UNIT_FLAG2_MIRROR_IMAGE);
-    else
-        SetUInt32Value(UNIT_FIELD_FLAGS_2, cInfo->unit_flags2);
+        if (GetScriptName() == "mercenary_bot")
+            SetUInt32Value(UNIT_FIELD_FLAGS_2, cInfo->unit_flags2 | UNIT_FLAG2_MIRROR_IMAGE);
+        else
+            SetUInt32Value(UNIT_FIELD_FLAGS_2, cInfo->unit_flags2);
 		
 
 
@@ -137,49 +140,50 @@ And replace it with:
 
 * Go to: src/server/game/Handlers/SpellHandler.cpp
 * Search for: void WorldSession::HandleMirrorImageDataRequest(WorldPacket& recvData)
-And on line 586, below:
-    if (!unit)
-        return;
+* And on line 586, below:
 
-Paste the following code:
-
-    if (Pet* pet = unit->ToPet())
-    {
-        Mercenary* mercenary = sMercenaryMgr->GetMercenary(pet->GetCharmInfo()->GetPetNumber());
-        if (mercenary)
-        {
-            WorldPacket data(SMSG_MIRRORIMAGE_DATA, 68);
-            data << uint64(pet->GetGUID());
-            data << uint32(mercenary->GetDisplay());
-            data << uint8(mercenary->GetRace());
-            data << uint8(mercenary->GetGender());
-            data << uint8(1);
-            data << uint8(0); // Skin
-            data << uint8(0); // Face
-            data << uint8(0); // Hair
-            data << uint8(0); // Hair color
-            data << uint8(0); // Facial hair
-            data << uint32(0);
-            data << uint32(sMercenaryMgr->GetItemDisplayId(mercenary->GetItemBySlot(SLOT_HEAD)));
-            data << uint32(sMercenaryMgr->GetItemDisplayId(mercenary->GetItemBySlot(SLOT_SHOULDERS)));
-            data << uint32(0); // Shirt?
-            data << uint32(sMercenaryMgr->GetItemDisplayId(mercenary->GetItemBySlot(SLOT_CHEST)));
-            data << uint32(0); // Waist
-            data << uint32(sMercenaryMgr->GetItemDisplayId(mercenary->GetItemBySlot(SLOT_LEGS)));
-            data << uint32(sMercenaryMgr->GetItemDisplayId(mercenary->GetItemBySlot(SLOT_FEET)));
-            data << uint32(0); // Wrists
-            data << uint32(sMercenaryMgr->GetItemDisplayId(mercenary->GetItemBySlot(SLOT_HANDS)));
-            data << uint32(0); // Cloak
-            data << uint32(0); // Tabard
-
-            SendPacket(&data);
+        if (!unit)
             return;
+
+* Paste the following code:
+
+        if (Pet* pet = unit->ToPet())
+        {
+            Mercenary* mercenary = sMercenaryMgr->GetMercenary(pet->GetCharmInfo()->GetPetNumber());
+            if (mercenary)
+            {
+                WorldPacket data(SMSG_MIRRORIMAGE_DATA, 68);
+                data << uint64(pet->GetGUID());
+                data << uint32(mercenary->GetDisplay());
+                data << uint8(mercenary->GetRace());
+                data << uint8(mercenary->GetGender());
+                data << uint8(1);
+                data << uint8(0); // Skin
+                data << uint8(0); // Face
+                data << uint8(0); // Hair
+                data << uint8(0); // Hair color
+                data << uint8(0); // Facial hair
+                data << uint32(0);
+                data << uint32(sMercenaryMgr->GetItemDisplayId(mercenary->GetItemBySlot(SLOT_HEAD)));
+                data << uint32(sMercenaryMgr->GetItemDisplayId(mercenary->GetItemBySlot(SLOT_SHOULDERS)));
+                data << uint32(0); // Shirt?
+                data << uint32(sMercenaryMgr->GetItemDisplayId(mercenary->GetItemBySlot(SLOT_CHEST)));
+                data << uint32(0); // Waist
+                data << uint32(sMercenaryMgr->GetItemDisplayId(mercenary->GetItemBySlot(SLOT_LEGS)));
+                data << uint32(sMercenaryMgr->GetItemDisplayId(mercenary->GetItemBySlot(SLOT_FEET)));
+                data << uint32(0); // Wrists
+                data << uint32(sMercenaryMgr->GetItemDisplayId(mercenary->GetItemBySlot(SLOT_HANDS)));
+                data << uint32(0); // Cloak
+                data << uint32(0); // Tabard
+
+                SendPacket(&data);
+                return;
+            }
         }
-    }
 
 * Lastly, go to: src/server/game/Server/WorldSession.cpp
 * Press Ctrl+G and put in line number 1368. You should jump to that line.
-Afterwards, insert this case:
+* Afterwards, insert this case:
 
         case CMSG_GET_MIRRORIMAGE_DATA:                 // not profiled
 
@@ -188,8 +192,8 @@ Afterwards, insert this case:
 
 * Go to: src/server/game/Handlers/MiscHandler.cpp
 * Search for: void WorldSession::HandleGossipSelectOptionOpcode(WorldPacket& recvData)
-Inside of that function, search for: if (guid.IsCreatureOrVehicle())
-And change it to: if ((guid.IsCreatureOrVehicle() || guid.IsCreatureOrPet()))
+* Inside of that function, search for: if (guid.IsCreatureOrVehicle())
+* And change it to: if ((guid.IsCreatureOrVehicle() || guid.IsCreatureOrPet()))
 
 
 ##StatSystem.cpp
