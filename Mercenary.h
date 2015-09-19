@@ -18,21 +18,10 @@
 
 struct MercenarySpells
 {
+    uint8 type;
     uint8 role;
     uint32 spellId;
-    bool isHeal;
     bool isActive;
-};
-
-struct MercenaryActions
-{
-    uint32 guid;
-    uint32 ownerGUID;
-    uint8 healAtPct;
-    uint8 castAtPct;
-    uint32 spellId;
-    uint32 castTimer;
-    bool isCast;
 };
 
 struct MercenaryGear
@@ -132,7 +121,7 @@ enum RaceModels
 };
 
 #define MERCENARY_DEFAULT_ENTRY 70000
-#define MERCENARY_MAX_ACTIONS 5
+#define MERCENARY_MAX_SPELLS 4
 
 class Mercenary
 {
@@ -141,10 +130,6 @@ public:
     Mercenary(uint32 model, uint8 race, uint8 gender, uint8 role, uint8 type);
     ~Mercenary();
 
-    /*
-    * Loads the Mercenary's actions from the database into a map
-    */
-    void LoadActionsFromDB();
     /*
     * Loads the Mercenary's gear from the database into a vector
     */
@@ -165,15 +150,16 @@ public:
     /*
     * Creates and spawns the Mercenary
     */
-    bool Create(Player* player, uint32 entry, uint32 model, uint8 race, uint8 gender, uint8 mercenaryType, uint8 role);
+    bool Create(Player* player, uint32 model, uint8 race, uint8 gender, uint8 mercenaryType, uint8 role);
     /*
-    * Creates a new action that the owner setup via gossip
+    * Mercenary will learn the given spellId
+    * Maximum spells Mercenary can have is 4
     */
-    bool CreateAction(Player* player);
+    bool LearnSpell(Player* player, uint32 spellId);
     /*
     * Summons the Mercenary
     */
-    bool Summon(Player* player, uint32 entry, uint32 model, uint8 mercType);
+    bool Summon(Player* player);
     /*
     * Initializes Mercenary's stats
     */
@@ -183,13 +169,13 @@ public:
     */
     bool UpdateStats(Player* player, Stats /* stats */, Pet* pet);
     /*
-    * Returns true if the gear is valid, false if not
-    */
-    bool IsValidGear(uint32 entry);
-    /*
     * Returns true if the Mercenary can equip the specified item
     */
     bool CanEquipItem(Player* player, Item* item);
+    /*
+    * Initializes Mercenary's stats, gear and other summon values
+    */
+    void Initialize(Player* player, Pet* pet, bool create);
     /*
     * Sets the displayId, race and gender values of the Mercenary
     */
@@ -206,22 +192,6 @@ public:
     * Sets the equip slot the Mercenary owner is currently editing
     */
     void SetEditSlot(const uint8 slot) { editSlot = slot; }
-    /*
-    * Sets Action spellId
-    */
-    void SetSpell(const uint32 spellId) { selectedSpellId = spellId; }
-    /*
-    * Sets Action spell cast time
-    */
-    void SetCastTime(const uint32 castTime) { selectedCastTime = castTime; }
-    /*
-    * Sets Action heal at percentage
-    */
-    void SetHealPct(const uint8 healPct) { selectedHealPct = healPct; }
-    /*
-    * Sets Action cast at percentage
-    */
-    void SetCastPct(const uint8 castPct) { selectedCastPct = castPct; }
     /*
     * Sets Mercenary's name
     */
@@ -321,15 +291,11 @@ public:
     bool IsSummoned() const { return summoned; }
     bool IsBeingCreated() const { return beingCreated; }
     uint8 GetEditSlot() const { return editSlot; }
-    uint32 GetSelectedSpell() const { return selectedSpellId; }
 
-    typedef std::vector<MercenaryActions> Action;
     typedef std::vector<MercenaryGear> Gear;
 
     Gear::const_iterator GearBegin() const { return GearContainer.begin(); }
     Gear::const_iterator GearEnd() const { return GearContainer.end(); }
-    Action::const_iterator ActionBegin() const { return ActionContainer.begin(); }
-    Action::const_iterator ActionEnd() const { return ActionContainer.end(); }
 
     /*
     * Returns an item entry Id by slotId. If no item is found, returns NULL
@@ -367,7 +333,7 @@ public:
                 {
                     uint8 invSlot = GetInvTypeSlot(slot);
                     if (proto->InventoryType == invSlot && slot != SLOT_MAIN_HAND && slot != SLOT_OFF_HAND)
-						tempVector.push_back(item->GetEntry());
+                        tempVector.push_back(item->GetEntry());
                     if ((proto->InventoryType == invSlot || proto->InventoryType == INVTYPE_2HWEAPON ||
                         proto->InventoryType == INVTYPE_WEAPON) && slot == SLOT_MAIN_HAND)
                         tempVector.push_back(item->GetEntry());
@@ -382,13 +348,13 @@ public:
     }
 
     /*
-    * Returns true if the Mercenary has a weapon, false if not.
-    * @parameter: If true it checks if the Mercenary has an off hand weapon equipped.
+    * Returns true if the Mercenary has a weapon equipped, false if not.
+    * @parameter: If true, Mercenary has an off hand weapon equipped.
     * If false it checks for a main hand weapon equipped.
     */
     bool HasWeapon(bool offhand)
     {
-        for (Gear::const_iterator itr = GearBegin(); itr != GearEnd(); ++itr)
+        for (auto& itr = GearBegin(); itr != GearEnd(); ++itr)
         {
             if (offhand)
             {
@@ -405,32 +371,7 @@ public:
         return true;
     }
 
-    /*
-    * Returns true if the Mercenary has the maximum amount of actions
-    */
-    bool HasMaxActions()
-    {
-        return ActionContainer.size() == MERCENARY_MAX_ACTIONS;
-    }
-
-    /*
-    * Checks if the Mercenary's owner is setting up an action
-    */
-    bool IsProcessingAction()
-    {
-        return selectedSpellId > 0;
-    }
-
-    /*
-    * Returns action by element
-    */
-    MercenaryActions GetActionById(int element) const
-    {
-        return ActionContainer[element];
-    }
-
 protected:
-    Action ActionContainer;
     Gear GearContainer;
 
 private:
@@ -459,10 +400,6 @@ private:
     bool summoned;
     bool beingCreated;
     uint8 editSlot;
-    uint32 selectedSpellId;
-    uint32 selectedCastTime;
-    uint8 selectedHealPct;
-    uint8 selectedCastPct;
 };
 
 typedef std::unordered_map<uint32, Mercenary*> MercenaryMap;

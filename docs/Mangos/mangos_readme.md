@@ -31,8 +31,18 @@ Add the following code above: 'sLog.outString("WORLD: World initialized");':
 Include MercenaryMgr header: #include "MercenaryMgr.h"
 
 * Find: void Player::SaveToDB()
-At the bottom of the function add the following code:
-    sMercenaryMgr->UpdateGear(this);
+* Search for:
+
+     if (Pet* pet = GetPet())
+         pet->SavePetToDB(PET_SAVE_AS_CURRENT);
+		 
+* And replace it with:
+
+    if (Pet* pet = GetPet())
+    {
+        pet->SavePetToDB(PET_SAVE_AS_CURRENT);
+        sMercenaryMgr->OnSave(this, pet);
+    }
 	
 * Find: void Player::UpdateZone(uint32 newZone, uint32 newArea)
 Above: m_zoneUpdateId    = newZone;
@@ -40,17 +50,6 @@ Add the following code:
 
     if ((newZone || newArea) && !GetPet())
         sMercenaryMgr->OnSummon(this);
-
-		
-##CharacterHandler.cpp
-
-* Go to: src/game/WorldHandlers/CharacterHandler.cpp
-Include MercenaryMgr header: #include "MercenaryMgr.h"
-
-* Find: void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
-At the bottom of the function above 'delete holder;', add the following code:
-
-    sMercenaryMgr->OnSummon(pCurrChar);
 
 
 ##Pet.cpp
@@ -66,15 +65,18 @@ Add the code below, below 'GetEntry()' if statement:
 ##CreatureAISelector.cpp
 
 * Go to src\server\game\Object\CreatureAISelector.cpp
-Search for the code below:
+* Find: CreatureAI* selectAI(Creature* creature)
+* Search for the code below:
 
-if ((creature->IsPet() && ((Pet*)creature)->isControlled() &&
-    ((owner = creature->GetOwner()) && owner->GetTypeId() == TYPEID_PLAYER)) || creature->IsCharmed())
+		if ((!creature->IsPet() || !((Pet*)creature)->isControlled()) && !creature->IsCharmed())
+            if (CreatureAI* scriptedAI = sScriptMgr.GetCreatureAI(creature))
+                { return scriptedAI; }
 
 And change it to:
 
-if ((creature->IsPet() && creature->GetScriptName() != "mercenary_bot" && ((Pet*)creature)->isControlled() &&
-    ((owner = creature->GetOwner()) && owner->GetTypeId() == TYPEID_PLAYER)) || creature->IsCharmed())
+		if (creature->GetScriptName() == "mercenary_bot" || (!creature->IsPet() || !((Pet*)creature)->isControlled()) && !creature->IsCharmed())
+            if (CreatureAI* scriptedAI = sScriptMgr.GetCreatureAI(creature))
+                { return scriptedAI; }
 
 
 ##ItemDisplayInfo Addition (DBCStores.cpp, DBCStores.h, DBCStructure.h, DBCFmt.h)

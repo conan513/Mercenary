@@ -83,7 +83,7 @@ void MercenaryMgr::LoadMercenaries()
         } while (result->NextRow());
     }
 
-    result = CharacterDatabase.Query("SELECT type, role, spellId, isHeal, isActive FROM mercenary_spells");
+    result = CharacterDatabase.Query("SELECT type, role, spellId, isActive FROM mercenary_spells");
     if (result)
     {
         do
@@ -91,12 +91,12 @@ void MercenaryMgr::LoadMercenaries()
             Field* fields = result->Fetch();
 
             MercenarySpells spells;
+            spells.type = fields[0].GetUInt8();
             spells.role = fields[1].GetUInt8();
             spells.spellId = fields[2].GetUInt32();
-            spells.isHeal = fields[3].GetBool();
-            spells.isActive = fields[4].GetBool();
+            spells.isActive = fields[3].GetBool();
 
-            MercenarySpellsContainer[fields[0].GetUInt8()] = spells;
+            MercenarySpellsContainer.push_back(spells);
         } while (result->NextRow());
     }
 
@@ -138,23 +138,30 @@ void MercenaryMgr::UpdateSummoned(uint32 Id, bool summoned)
 #endif
 }
 
-void MercenaryMgr::UpdateGear(Player* player)
+void MercenaryMgr::OnSave(Player* player, Pet* pet)
 {
     Mercenary* mercenary = GetMercenaryByOwner(player->GetGUIDLow());
     if (!mercenary)
         return;
 
     if (!mercenary->IsBeingCreated())
+    {
         mercenary->UpdateGear();
+#ifdef MANGOS
+        pet->_SaveSpells();
+        pet->_SaveAuras();
+        pet->_SaveSpellCooldowns();
+#else
+        SQLTransaction trans = CharacterDatabase.BeginTransaction();
+        pet->_SaveSpells(trans);
+        pet->_SaveAuras(trans);
+        CharacterDatabase.CommitTransaction(trans);
+#endif
+    }
 }
 
 void MercenaryMgr::OnSummon(Player* player)
 {
     if (Mercenary* mercenary = sMercenaryMgr->GetMercenaryByOwner(player->GetGUIDLow()))
-    {
-        uint32 entry = mercenary->GetEntry();
-        uint32 model = mercenary->GetDisplay();
-        uint8 type = mercenary->GetType();
-        mercenary->Summon(player, entry, model, type);
-    }
+        mercenary->Summon(player);
 }

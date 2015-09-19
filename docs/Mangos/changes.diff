@@ -23,32 +23,6 @@
      uint32 uStartInterval = WorldTimer::getMSTimeDiff(uStartTime, WorldTimer::getMSTime());
      sLog.outString("SERVER STARTUP TIME: %i minutes %i seconds", uStartInterval / 60000, (uStartInterval % 60000) / 1000);
  }
- 
-@@ -47,10 +47,11 @@
- #include "SpellMgr.h"
- #include "Calendar.h"
- #ifdef ENABLE_ELUNA
- #include "LuaEngine.h"
- #endif /* ENABLE_ELUNA */
-+#include "MercenaryMgr.h"
- 
- // config option SkipCinematics supported values
- enum CinematicsSkipMode
- {
-     CINEMATICS_SKIP_NONE      = 0,
-@@ -926,10 +927,12 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
-     // Used by Eluna
- #ifdef ENABLE_ELUNA
-     sEluna->OnLogin(pCurrChar);
- #endif /* ENABLE_ELUNA */
- 
-+    sMercenaryMgr->OnSummon(pCurrChar);
-+
-     // Handle Login-Achievements (should be handled after loading)
-     pCurrChar->GetAchievementMgr().UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_ON_LOGIN, 1);
- 
-     delete holder;
- }
 
 @@ -303,10 +303,15 @@ bool Creature::InitEntry(uint32 Entry, CreatureData const* data /*=NULL*/, GameE
      {
@@ -81,18 +55,18 @@
      uint32 dynFlags = GetUInt32Value(UNIT_DYNAMIC_FLAGS);
      SetUInt32Value(UNIT_DYNAMIC_FLAGS, dynFlags ? dynFlags : GetCreatureInfo()->DynamicFlags);
 	 
-@@ -50,11 +50,11 @@ namespace FactorySelector
-         std::string ainame = creature->GetAIName();
+@@ -37,11 +37,11 @@ INSTANTIATE_SINGLETON_1(MovementGeneratorRegistry);
+ namespace FactorySelector
+ {
+     CreatureAI* selectAI(Creature* creature)
+     {
+         // Allow scripting AI for normal creatures and not controlled pets (guardians and mini-pets)
+-        if ((!creature->IsPet() || !((Pet*)creature)->isControlled()) && !creature->IsCharmed())
++        if (creature->GetScriptName() == "mercenary_bot" || (!creature->IsPet() || !((Pet*)creature)->isControlled()) && !creature->IsCharmed())
+             if (CreatureAI* scriptedAI = sScriptMgr.GetCreatureAI(creature))
+                 { return scriptedAI; }
  
-         // select by NPC flags _first_ - otherwise EventAI might be choosen for pets/totems
-         // excplicit check for isControlled() and owner type to allow guardian, mini-pets and pets controlled by NPCs to be scripted by EventAI
-         Unit* owner = NULL;
--        if ((creature->IsPet() && ((Pet*)creature)->isControlled() &&
-+        if ((creature->IsPet() && creature->GetScriptName() != "mercenary_bot" && ((Pet*)creature)->isControlled() &&
-              ((owner = creature->GetOwner()) && owner->GetTypeId() == TYPEID_PLAYER)) || creature->IsCharmed())
-             { ai_factory = ai_registry.GetRegistryItem("PetAI"); }
-         else if (creature->IsTotem())
-             { ai_factory = ai_registry.GetRegistryItem("TotemAI"); }
+         CreatureAIRegistry& ai_registry(CreatureAIRepository::Instance());
 			 
 @@ -341,10 +341,13 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry, uint32 petnumber, bool c
  void Pet::SavePetToDB(PetSaveMode mode)
@@ -135,14 +109,16 @@
      m_zoneUpdateTimer = ZONE_UPDATE_INTERVAL;
  
      // zone changed, so area changed as well, update it
-@@ -17415,10 +17419,12 @@ void Player::SaveToDB()
+@@ -17414,11 +17418,14 @@ void Player::SaveToDB()
+     if (m_session->isLogingOut() || !sWorld.getConfig(CONFIG_BOOL_STATS_SAVE_ONLY_ON_LOGOUT))
          _SaveStats();
  
      // save pet (hunter pet level and experience and all type pets health/mana).
      if (Pet* pet = GetPet())
++    {
          pet->SavePetToDB(PET_SAVE_AS_CURRENT);
-+
-+    sMercenaryMgr->UpdateGear(this);
++        sMercenaryMgr->OnSave(this, pet);
++    }
  }
  
  // fast save function for item/money cheating preventing - save only inventory and money state
@@ -156,7 +132,7 @@
  bool Creature::UpdateAllStats()
  {
 +    if (GetScriptName() == "mercenary_bot")
-+        return;
++        return false;
 +
      UpdateMaxHealth();
      UpdateAttackPowerAndDamage();

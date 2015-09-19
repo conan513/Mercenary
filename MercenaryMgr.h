@@ -8,7 +8,7 @@
 #include "Mercenary.h"
 #include <random>
 
-typedef std::unordered_map<uint8, MercenarySpells> MercenarySpellsMap;
+typedef std::vector<MercenarySpells> MercenarySpellsMap;
 typedef std::unordered_map<uint8, MercenaryStartGear> MercenaryStartGearMap;
 typedef std::unordered_map<int, MercenaryTalking> MercenaryTalkMap;
 
@@ -36,10 +36,29 @@ public:
         return &instance;
     }
 
+    /*
+    * Loads Mercenaries from Database
+    */
     void LoadMercenaries();
+    /*
+    * Saves Mercenary to a container
+    */
     void SaveToList(Mercenary* mercenary);
+    /*
+    * Sets if the Mercenary is currently summoned
+    */
     void UpdateSummoned(uint32 Id, bool summoned);
-    void UpdateGear(Player* player);
+    /*
+    * On Mercenary save to database
+    * Also updates gear and saves Mercenary spells
+    * Cals when players saves
+    */
+    void OnSave(Player* player, Pet* pet);
+    /*
+    * On Mercenary summon
+    * Calls when you change zones
+    * If your Mercenary isn't with you, you can change zones to summon it back automatically
+    */
     void OnSummon(Player* player);
 
     MercenaryMap::const_iterator MercenaryBegin() const { return MercenaryContainer.begin(); }
@@ -51,6 +70,9 @@ public:
     MercenaryTalkMap::const_iterator MercenaryTalkBegin() const { return MercenaryTalkContainer.begin(); }
     MercenaryTalkMap::const_iterator MercenaryTalkEnd() const { return MercenaryTalkContainer.end(); }
 
+    /*
+    * Returns Mercenary's class by search for pet's guid
+    */
     Mercenary* GetMercenary(uint32 Id)
     {
         auto itr = MercenaryContainer.find(Id);
@@ -60,6 +82,9 @@ public:
         return nullptr;
     }
 
+    /*
+    * Returns Mercenary's class by search for owner's guid
+    */
     Mercenary* GetMercenaryByOwner(uint32 ownerGUID)
     {
         for (auto& itr = MercenaryBegin(); itr != MercenaryEnd(); ++itr)
@@ -82,6 +107,9 @@ public:
         return tempTalk;
     }
 
+    /*
+    * Returns item's displayId by itemEntry
+    */
     uint32 GetItemDisplayId(uint32 itemEntry)
     {
 #ifndef MANGOS

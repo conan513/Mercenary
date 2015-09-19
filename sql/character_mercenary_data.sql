@@ -31,20 +31,6 @@ CREATE TABLE `mercenaries` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Mercenary System';
 
 -- ----------------------------
--- Table structure for `mercenary_actions`
--- ----------------------------
-DROP TABLE IF EXISTS `mercenary_actions`;
-CREATE TABLE `mercenary_actions` (
-  `guid` int(10) unsigned NOT NULL,
-  `ownerGUID` int(10) unsigned NOT NULL,
-  `isCast` tinyint(1) unsigned NOT NULL DEFAULT '1',
-  `spellId` mediumint(8) NOT NULL DEFAULT '0',
-  `castTimer` int(10) NOT NULL DEFAULT '5000',
-  `healPct` tinyint(1) unsigned NOT NULL DEFAULT '0',
-  `castPct` tinyint(1) unsigned NOT NULL DEFAULT '0'
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- ----------------------------
 -- Table structure for `mercenary_gear`
 -- ----------------------------
 DROP TABLE IF EXISTS `mercenary_gear`;
@@ -63,7 +49,6 @@ CREATE TABLE `mercenary_spells` (
   `type` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `role` tinyint(3) unsigned NOT NULL DEFAULT '1',
   `spellId` mediumint(8) unsigned NOT NULL DEFAULT '0',
-  `isHeal` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `isActive` tinyint(1) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 

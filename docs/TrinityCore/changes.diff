@@ -1,3 +1,35 @@
+// File: src/server/game/Entities/Player.cpp
+@@ -80,10 +80,11 @@
+ #include "WorldSession.h"
+ #include "GameObjectAI.h"
+ #ifdef ELUNA
+ #include "LuaEngine.h"
+ #endif
++#include "MercenaryMgr.h"
+ 
+ #define ZONE_UPDATE_INTERVAL (1*IN_MILLISECONDS)
+ 
+ #define PLAYER_SKILL_INDEX(x)       (PLAYER_SKILL_INFO_1_1 + ((x)*3))
+ #define PLAYER_SKILL_VALUE_INDEX(x) (PLAYER_SKILL_INDEX(x)+1)
+@@ -19388,12 +19389,15 @@ void Player::SaveToDB(bool create /*=false*/)
+         _SaveStats(trans);
+ 
+     CharacterDatabase.CommitTransaction(trans);
+ 
+     // save pet (hunter pet level and experience and all type pets health/mana).
+-    if (Pet* pet = GetPet())
+-        pet->SavePetToDB(PET_SAVE_AS_CURRENT);
++	if (Pet* pet = GetPet())
++	{
++		pet->SavePetToDB(PET_SAVE_AS_CURRENT);
++		sMercenaryMgr->OnSave(this, pet);
++	}
+ }
+ 
+ // fast save function for item/money cheating preventing - save only inventory and money state
+ void Player::SaveInventoryAndGoldToDB(SQLTransaction& trans)
+ {
+
 // File: src/server/game/Entities/Pet.cpp
 @@ -372,10 +372,13 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petEntry, uint32 petnumber, bool c
  void Pet::SavePetToDB(PetSaveMode mode)

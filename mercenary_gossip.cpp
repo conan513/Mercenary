@@ -25,11 +25,6 @@ class mercenary_player : public PlayerScript
 public:
     mercenary_player() : PlayerScript("mercenary_player") { }
 
-    void OnLogin(Player* player, bool /*firstLogin*/) override
-    {
-        sMercenaryMgr->OnSummon(player);
-    }
-
     void OnUpdateZone(Player* player, uint32 newZone, uint32 newArea) override
     {
         if ((newZone || newArea) && !player->GetPet())
@@ -45,6 +40,13 @@ public:
 
     bool OnGossipHello(Player* player, Creature* creature) override
     {
+        player->PlayerTalkClass->ClearMenus();
+        if (player->IsInCombat())
+        {
+            player->GetSession()->SendNotification("You are in combat.");
+            return false;
+        }
+
         SendToHello(player, creature);
         return true;
     }
@@ -79,7 +81,7 @@ public:
                 mercenary->SetValues(randomMercenary.model, randomMercenary.race, randomMercenary.gender);
                 mercenary->SetType(randomClass.type);
                 mercenary->SetRole(randomClass.role);
-                CreateMercenary(player, creature, mercenary, MERCENARY_DEFAULT_ENTRY, mercenary->GetDisplay(), mercenary->GetRace(), 
+                CreateMercenary(player, creature, mercenary, mercenary->GetDisplay(), mercenary->GetRace(), 
                     mercenary->GetGender(), mercenary->GetRole(), mercenary->GetType());
                 player->CLOSE_GOSSIP_MENU();
             }break;
@@ -218,7 +220,7 @@ public:
                 SendConfirmation(player, creature);
                 break;
             case 39:
-                CreateMercenary(player, creature, mercenary, MERCENARY_DEFAULT_ENTRY, mercenary->GetDisplay(), mercenary->GetRace(),
+                CreateMercenary(player, creature, mercenary, mercenary->GetDisplay(), mercenary->GetRace(),
                     mercenary->GetGender(), mercenary->GetRole(), mercenary->GetType());
                 player->CLOSE_GOSSIP_MENU();
                 break;
@@ -268,7 +270,7 @@ public:
             { DRAENEI_MALE_MODEL, RACE_DRAENEI, GENDER_MALE },
             { DRAENEI_FEMALE_MODEL, RACE_DRAENEI, GENDER_FEMALE }
         };
-        return rndMerc[rand() % sizeof(rndMerc) / sizeof(*rndMerc)];
+        return rndMerc[sMercenaryMgr->random.Next(0, 18)];
     }
 
     RandomMercenaryTypeRole GetRandomTypeAndRole()
@@ -296,7 +298,7 @@ public:
             { MERCENARY_TYPE_SHAMAN, ROLE_CASTER_DPS },
             { MERCENARY_TYPE_SHAMAN, ROLE_HEALER }
         };
-        return rndTypeRole[rand() % sizeof(rndTypeRole) / sizeof(*rndTypeRole)];
+        return rndTypeRole[sMercenaryMgr->random.Next(0, 20)];
     }
 
     void SendToHello(Player* player, Creature* creature)
@@ -423,9 +425,9 @@ public:
 #endif
     }
 
-    void CreateMercenary(Player* player, Creature* creature, Mercenary* mercenary, uint32 entryId, uint32 model, uint8 race, uint8 gender, uint8 role, uint8 type)
+    void CreateMercenary(Player* player, Creature* creature, Mercenary* mercenary, uint32 model, uint8 race, uint8 gender, uint8 role, uint8 type)
     {
-        if (!mercenary->Create(player, entryId, model, race, gender, type, role))
+        if (!mercenary->Create(player, model, race, gender, type, role))
         {
             player->GetSession()->SendNotification("Could not create your Mercenary!");
             SendToHello(player, creature);
@@ -442,9 +444,22 @@ class mercenary_bot : public CreatureScript
 public:
     mercenary_bot() : CreatureScript("mercenary_bot") { }
 
+    bool removingSpell;
+
     bool OnGossipHello(Player* player, Creature* creature) override
     {
-        SendToHello(player, creature);
+        player->PlayerTalkClass->ClearMenus();
+        if (player->IsInCombat())
+        {
+            player->GetSession()->SendNotification("You are in combat.");
+            return false;
+        }
+
+        Mercenary* mercenary = sMercenaryMgr->GetMercenaryByOwner(player->GetGUIDLow());
+        if (!mercenary)
+            return false;
+
+        SendToHello(player, creature, mercenary);
         return true;
     }
 
@@ -455,39 +470,45 @@ public:
         WorldSession* session = player->GetSession();
         if (mercenary)
         {
-            std::vector<uint32> tempVector = mercenary->GetEquippableItems(player, mercenary->GetEditSlot());
-            for (auto& itr = tempVector.begin(); itr != tempVector.end(); ++itr)
+            if (mercenary->GetEditSlot() > -1)
             {
-                if (Item* item = player->GetItemByEntry(*itr))
+                std::vector<uint32> tempVector = mercenary->GetEquippableItems(player, mercenary->GetEditSlot());
+                for (auto& itr = tempVector.begin(); itr != tempVector.end(); ++itr)
                 {
-                    if (actions == item->GetEntry())
+                    if (Item* item = player->GetItemByEntry(*itr))
                     {
-                        player->CLOSE_GOSSIP_MENU();
-                        if (!mercenary->CanEquipItem(player, item))
-                            return false;
-                        else
+                        if (actions == item->GetEntry())
                         {
-                            ChatHandler(session).PSendSysMessage("Successfully equipped %s to your Mercenary!", mercenary->GetItemLink(item->GetEntry(), session));
-                            return false;
+                            player->CLOSE_GOSSIP_MENU();
+                            if (!mercenary->CanEquipItem(player, item))
+                                return false;
+                            else
+                            {
+                                ChatHandler(session).PSendSysMessage("Successfully equipped %s to your Mercenary!", mercenary->GetItemLink(item->GetEntry(), session));
+                                mercenary->SetEditSlot(-1);
+                                return false;
+                            }
                         }
                     }
                 }
             }
 
-            if (!mercenary->IsProcessingAction())
+            for (auto& it = sMercenaryMgr->MercenarySpellsBegin(); it != sMercenaryMgr->MercenarySpellsEnd(); ++it)
             {
-                int spellAction = 100;
-                for (auto it = sMercenaryMgr->MercenarySpellsBegin(); it != sMercenaryMgr->MercenarySpellsEnd(); ++it)
+                if (mercenary->GetType() == it->type && mercenary->GetRole() == it->role)
                 {
-                    if (mercenary->GetType() == it->first && mercenary->GetRole() == it->second.role)
+                    if (actions == it->spellId)
                     {
-                        if (actions == spellAction)
+                        if (removingSpell)
                         {
-                            mercenary->SetSpell(it->second.spellId);
-                            SendSetupAction(player, creature, mercenary);
-                            return false;
+                            Pet* pet = (Pet*)creature;
+                            pet->removeSpell(it->spellId, false);
+                            removingSpell = false;
                         }
-                        spellAction++;
+                        else
+                            mercenary->LearnSpell(player, it->spellId);
+                        player->CLOSE_GOSSIP_MENU();
+                        return false;
                     }
                 }
             }
@@ -507,9 +528,9 @@ public:
                     const ItemPrototype* proto = sObjectMgr.GetItemPrototype(itr->itemId);
 #endif
                     if (proto)
-                        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, mercenary->GetItemIcon(itr->itemId) + mercenary->GetItemLink(itr->itemId, session), 0, 99);
+                        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, mercenary->GetItemIcon(itr->itemId) + mercenary->GetItemLink(itr->itemId, session), 0, 36);
                 }
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "<- Back <-", 0, 99);
+                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "<- Back <-", 0, 36);
 #ifndef MANGOS
                 player->SEND_GOSSIP_MENU(1, creature->GetGUID());
 #else
@@ -553,113 +574,37 @@ public:
             case 14: // Equip Head
                 SendItemList(player, creature, mercenary, SLOT_HEAD);
                 break;
-            case 15:
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Cast every 5 seconds", 0, 19);
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Cast every 8 seconds", 0, 20);
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Cast every 12 seconds", 0, 21);
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Cast every 20 seconds", 0, 22);
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Cast every 25 seconds", 0, 23);
+            case 36:
+                SendToHello(player, creature, mercenary);
+                break;
+            case 39:
+            case 40:
+                Pet* pet = (Pet*)creature;
+                for (auto& it = sMercenaryMgr->MercenarySpellsBegin(); it != sMercenaryMgr->MercenarySpellsEnd(); ++it)
+                {
+                    if (!it->isActive)
+                        continue;
+
+                    if (mercenary->GetType() == it->type && mercenary->GetRole() == it->role)
+                    {
+                        if (actions == 39)
+                            player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, mercenary->GetSpellIcon(it->spellId, player->GetSession()), 0, it->spellId);
+                        else
+                        {
+                            if (pet->HasSpell(it->spellId))
+                            {
+                                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, mercenary->GetSpellIcon(it->spellId, player->GetSession()) + "[Unlearn]", 0, it->spellId);
+                                removingSpell = true;
+                            }
+                        }
+                    }
+                }
+                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Back to Main Menu", 0, 36);
 #ifndef MANGOS
                 player->SEND_GOSSIP_MENU(1, creature->GetGUID());
 #else
                 player->SEND_GOSSIP_MENU(1, creature->GetObjectGuid());
 #endif
-                break;
-            case 16:
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Cast at 5%", 0, 25);
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Cast at 10%", 0, 26);
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Cast at 20%", 0, 27);
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Cast at 30% ", 0, 28);
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Cast at 40%", 0, 29);
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Cast at 50%", 0, 30);
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Cast at 60%", 0, 31);
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Cast at 70%", 0, 32);
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Cast at 80%", 0, 33);
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Cast at 90%", 0, 34);
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Cast at 100%", 0, 35);
-#ifndef MANGOS
-                player->SEND_GOSSIP_MENU(1, creature->GetGUID());
-#else
-                player->SEND_GOSSIP_MENU(1, creature->GetObjectGuid());
-#endif
-                break;
-            case 18:
-                if (mercenary->CreateAction(player))
-                    ChatHandler(session).SendSysMessage("Successfully created an action for your Mercenary!");
-                else
-                    session->SendNotification("Failed to create action!");
-                player->CLOSE_GOSSIP_MENU();
-                break;
-            case 19:
-                mercenary->SetCastTime(5000);
-                SendSetupAction(player, creature, mercenary);
-                break;
-            case 20:
-                mercenary->SetCastTime(8000);
-                SendSetupAction(player, creature, mercenary);
-                break;
-            case 21:
-                mercenary->SetCastTime(12000);
-                SendSetupAction(player, creature, mercenary);
-                break;
-            case 22:
-                mercenary->SetCastTime(20000);
-                SendSetupAction(player, creature, mercenary);
-                break;
-            case 23:
-                mercenary->SetCastTime(25000);
-                SendSetupAction(player, creature, mercenary);
-                break;
-            case 24:
-                mercenary->SetSpell(0);
-                player->CLOSE_GOSSIP_MENU();
-                break;
-            case 25:
-                mercenary->SetCastPct(5);
-                SendSetupAction(player, creature, mercenary);
-                break;
-            case 26:
-                mercenary->SetCastPct(10);
-                SendSetupAction(player, creature, mercenary);
-                break;
-            case 27:
-                mercenary->SetCastPct(20);
-                SendSetupAction(player, creature, mercenary);
-                break;
-            case 28:
-                mercenary->SetCastPct(30);
-                SendSetupAction(player, creature, mercenary);
-                break;
-            case 29:
-                mercenary->SetCastPct(40);
-                SendSetupAction(player, creature, mercenary);
-                break;
-            case 30:
-                mercenary->SetCastPct(50);
-                SendSetupAction(player, creature, mercenary);
-                break;
-            case 31:
-                mercenary->SetCastPct(60);
-                SendSetupAction(player, creature, mercenary);
-                break;
-            case 32:
-                mercenary->SetCastPct(70);
-                SendSetupAction(player, creature, mercenary);
-                break;
-            case 33:
-                mercenary->SetCastPct(80);
-                SendSetupAction(player, creature, mercenary);
-                break;
-            case 34:
-                mercenary->SetCastPct(90);
-                SendSetupAction(player, creature, mercenary);
-                break;
-            case 35:
-                mercenary->SetCastPct(100);
-                SendSetupAction(player, creature, mercenary);
-                break;
-            case 99:
-                SendToHello(player, creature);
                 break;
         }
 
@@ -673,7 +618,7 @@ public:
 #endif
     {
         player->PlayerTalkClass->ClearMenus();
-        if (actions == 98)
+        if (actions == 37)
         {
             Mercenary* mercenary = sMercenaryMgr->GetMercenaryByOwner(player->GetGUIDLow());
             if (!mercenary)
@@ -718,7 +663,7 @@ public:
             stmt->setUInt32(2, mercenary->GetOwnerGUID());
             CharacterDatabase.Execute(stmt);
 #else
-            CharacterDatabase.PExecute("UPDATE mercenaries SET name=%s WHERE Id=%u AND ownerGUID=%u", name.c_str(), player->GetGUIDLow());
+            CharacterDatabase.PExecute("UPDATE mercenaries SET name='%s' WHERE Id='%u' AND ownerGUID='%u'", name.c_str(), mercenary->GetId(), player->GetGUIDLow());
 #endif
         }
 
@@ -726,15 +671,14 @@ public:
         return true;
     }
 
-    void SendToHello(Player* player, Creature* creature)
+    void SendToHello(Player* player, Creature* creature, Mercenary* mercenary)
     {
-        Mercenary* mercenary = sMercenaryMgr->GetMercenaryByOwner(player->GetGUIDLow());
-        if (mercenary && mercenary->GetOwnerGUID() == player->GetGUIDLow())
+        if (mercenary->GetOwnerGUID() == player->GetGUIDLow())
         {
             player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Change Gear", 0, 1);
             player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "View equipped Gear", 0, 2);
-            player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Change Actions", 0, 3);
-            player->ADD_GOSSIP_ITEM_EXTENDED(GOSSIP_ICON_CHAT, "Change Name", 0, 98, "", 0, true);
+            player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Change Spells", 0, 3);
+            player->ADD_GOSSIP_ITEM_EXTENDED(GOSSIP_ICON_CHAT, "Change Name", 0, 37, "", 0, true);
         }
         else
             player->CLOSE_GOSSIP_MENU();
@@ -748,6 +692,8 @@ public:
 
     void SendEquipGear(Player* player, Creature* creature, Mercenary* mercenary)
     {
+        if (mercenary->GetEditSlot() != -1)
+            mercenary->SetEditSlot(-1);
         player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, mercenary->GetSlotIcon(SLOT_HEAD) + mercenary->GetSlotName(SLOT_HEAD), 0, 14);
         player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, mercenary->GetSlotIcon(SLOT_SHOULDERS) + mercenary->GetSlotName(SLOT_SHOULDERS), 0, 13);
         player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, mercenary->GetSlotIcon(SLOT_HANDS) + mercenary->GetSlotName(SLOT_HANDS), 0, 12);
@@ -757,7 +703,7 @@ public:
         player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, mercenary->GetSlotIcon(SLOT_MAIN_HAND) + mercenary->GetSlotName(SLOT_MAIN_HAND), 0, 8);
         player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, mercenary->GetSlotIcon(SLOT_OFF_HAND) + mercenary->GetSlotName(SLOT_OFF_HAND), 0, 7);
         player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, mercenary->GetSlotIcon(SLOT_RANGED) + mercenary->GetSlotName(SLOT_RANGED), 0, 6);
-        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Nevermind", 0, 99);
+        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Nevermind", 0, 36);
 #ifndef MANGOS
         player->SEND_GOSSIP_MENU(1, creature->GetGUID());
 #else
@@ -779,14 +725,14 @@ public:
                 else
                 {
                     ss << mercenary->GetItemLink(item->GetEntry(), player->GetSession()) << " [|cff990000Already Equipped|r]";
-                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, mercenary->GetItemIcon(item->GetEntry()) + ss.str().c_str(), 0, 99);
+                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, mercenary->GetItemIcon(item->GetEntry()) + ss.str().c_str(), 0, 36);
                 }
             }
         }
 
         if (slot == SLOT_OFF_HAND && mercenary->HasWeapon(true))
             player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Remove Off Hand Weapon", 0, 5);
-        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Back to Main Menu", 0, 99);
+        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Back to Main Menu", 0, 36);
 #ifndef MANGOS
         player->SEND_GOSSIP_MENU(1, creature->GetGUID());
 #else
@@ -796,39 +742,9 @@ public:
 
     void SendSpellList(Player* player, Creature* creature, Mercenary* mercenary)
     {
-        if (mercenary->IsProcessingAction())
-            mercenary->SetSpell(0);
-
-        int spellAction = 100;
-        for (auto& it = sMercenaryMgr->MercenarySpellsBegin(); it != sMercenaryMgr->MercenarySpellsEnd(); ++it)
-        {
-            if (mercenary->GetType() == it->first && mercenary->GetRole() == it->second.role)
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, mercenary->GetSpellIcon(it->second.spellId, player->GetSession()), 0, spellAction++);
-        }
-        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Back to Main Menu", 0, 99);
-#ifndef MANGOS
-        player->SEND_GOSSIP_MENU(1, creature->GetGUID());
-#else
-        player->SEND_GOSSIP_MENU(1, creature->GetObjectGuid());
-#endif
-    }
-
-    void SendSetupAction(Player* player, Creature* creature, Mercenary* mercenary)
-    {
-        MercenarySpells spell;
-        for (auto it = sMercenaryMgr->MercenarySpellsBegin(); it != sMercenaryMgr->MercenarySpellsEnd(); ++it)
-        {
-            if (it->second.spellId == mercenary->GetSelectedSpell())
-                spell = it->second;
-        }
-
-        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, mercenary->GetSpellIcon(spell.spellId, player->GetSession()) + "[Setup Action]", 0, 0);
-        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Set Cast Time", 0, 15);
-        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Set Cast at Pct", 0, 16);
-        if (spell.isHeal)
-            player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Set Heal at Pct", 0, 17);
-        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Done", 0, 18);
-        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Quit", 0, 24);
+        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Teach your Mercenary a new spell", 0, 39);
+        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Make your Mercenary Unlearn a spell", 0, 40);
+        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Back to Main Menu", 0, 36);
 #ifndef MANGOS
         player->SEND_GOSSIP_MENU(1, creature->GetGUID());
 #else
@@ -841,8 +757,6 @@ public:
         mercenary_bot_AI(Creature* creature) : PetAI(creature) { }
 
         uint32 talkTimer;
-        std::string lastMessage;
-        uint32 eventTimer[MERCENARY_MAX_ACTIONS];
 
         void Reset() override
         {
@@ -864,18 +778,6 @@ public:
             }
         }
 
-        void EnterCombat(Unit* /*who*/) override
-        {
-            if (mercenary)
-            {
-                for (int i = 0; i < sizeof(eventTimer) / sizeof(*eventTimer); ++i)
-                {
-                    MercenaryActions action = mercenary->GetActionById(i);
-                    eventTimer[i] = action.castTimer;
-                }
-            }
-        }
-
 #ifndef MANGOS
         void UpdateAI(uint32 diff) override
 #else
@@ -886,7 +788,7 @@ public:
             {
                 if (talkTimer <= diff)
                 {
-                    std::vector<MercenaryTalking> tempVector = sMercenaryMgr->GetTalk(mercenary->GetType(), mercenary->GetRole());
+                    auto& tempVector = sMercenaryMgr->GetTalk(mercenary->GetType(), mercenary->GetRole());
                     if (tempVector.size() > 0)
                     {
                         int rnd = sMercenaryMgr->random.Next(0, tempVector.size() - 1);
@@ -914,30 +816,6 @@ public:
                 if (!m_creature->getVictim())
                     return;
 #endif
-
-#ifndef MANGOS
-                if (me->HasUnitState(UNIT_STATE_CASTING))
-                    return;
-#endif
-
-                for (int i = 0; i < sizeof(eventTimer) / sizeof(*eventTimer); ++i)
-                {
-                    MercenaryActions action = mercenary->GetActionById(i);
-                    if (eventTimer[i] <= diff)
-                    {
-#ifndef MANGOS
-                        if (me->GetHealthPct() <= action.castAtPct)
-                            me->CastSpell(me->GetVictim(), action.castTimer);
-                        eventTimer[i] = action.castTimer;
-#else
-                        if (m_creature->GetHealthPercent() <= action.castAtPct)
-                            if (DoCastSpellIfCan(m_creature->getVictim(), action.spellId) == CAST_OK)
-                                eventTimer[i] = action.castTimer;
-#endif
-                    }
-                    else
-                        eventTimer[i] -= diff;
-                }
             }
             DoMeleeAttackIfReady();
         }
@@ -945,6 +823,7 @@ public:
         Mercenary* mercenary;
         MercenaryTalking mercenaryTalk;
         Player* owner;
+        std::string lastMessage;
     };
 
 #ifndef MANGOS

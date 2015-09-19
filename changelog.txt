@@ -1,3 +1,38 @@
+9/19/2015
+General
+- Updated documentation with the newest changes.
+- Added comments to MercenaryMgr class methods.
+- Added 'Initialize' method. This method is intended to clean up code and will initialize Mercenary data for both creation or summon.
+- Added 'LearnSpell' method. Self-explanatory.
+- Changed editSlot default value to -1. This is to allow a check to see if you are editing your Mercenary's gear so it doesn't call specific code until it is ready to.
+- Changed maximum amount of Mercenary spells to 4.
+- Changed 'UpdateGear' to 'OnSave'. This will update the gear and save new spells.
+- Removed 'isHeal' column from mercenary_spells table.
+- Reworked 'Initialize' code logic.
+- Removed 'entry', 'model', and 'type' parameters from OnSummon function as they weren't appropriate since it can get the data from the Mercenary class itself.
+- Removed 'entry' parameter from Create method (includes mercenary_gossip.cpp).
+- Removed 'OnSummon' call when the player logs in. It is now only called in UpdateZone. This also caused an issue on Mangos where the name would show 'Unknown' and the pet actionbar didn't show (issue was Mangos only).
+- When adding or unlearning a spell from/to your Mercenary, iterating through mercenary spells will now skip disabled spells.
+- Replaced rand() with Mercenaries random generator when generating a random Mercenary.
+- More code clean up, includes code blocks.
+
+AI
+- Added InCombat checks so you cannot interact with your Mercenary when in combat.
+- Removed actions. Mercenaries will now use the pet spell system since it is appropriate instead of having an entirely new system.
+- All gossip menus associated with actions were removed or had their name changed. 
+* Changed 'Change Actions' to 'Change Spells'
+* Added 'Teach your Mercenary a new spell' gossip item that will send you to the spell selection menu.
+* Added 'Make your Mercenary Unlearn a spell' gossip item that will send you to the unlearn menu.
+- When your Mercenary is summoned, its ReactState will now be defensive instead of passive.
+- Mercenaries will now have their PvP or FFAPvP set when summoned.
+
+Fixes
+- Fixed crash after selecting an action. [Mangos only]
+- Fixed crash after 
+- Fixed name and pet actionbar not showing when first summoning your Mercenary. [Mangos only]
+- Fixed Mercenary AI not working. This was caused by me editing the wrong if statement in ScriptMgr.cpp. [Mangos only]
+- Fixed potential crash when gear updated. [Mangos only]
+
 9/17/2015
 General
 - Ported to MaNGOS. System now supports MaNGOS and TrinityCore. Ready for public release now.

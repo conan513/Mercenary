@@ -15,20 +15,18 @@ Following files goes in src\server\game\AI
 Following files goes in src\server\scripts\Custom
 * mercenary_gossip.cpp
 
-Put this in src/server/shared/Database/Implementation/CharacterDatabase.h (above MAX_CHARACTERDATABASE_STATEMENTS):
+* Put this in src/server/shared/Database/Implementation/CharacterDatabase.h (above MAX_CHARACTERDATABASE_STATEMENTS):
 
     CHAR_INS_MERCENARY,
-    CHAR_INS_MERCENARY_ACTION,
     CHAR_UPD_MERCENARY_SUMMON,
     CHAR_INS_MERCENARY_GEAR,
     CHAR_UPD_MERCENARY_GEAR,
     CHAR_UPD_MERCENARY_NAME
 
-Put this in src/server/shared/Database/Implementation/CharacterDatabase.cpp:
+* Put this in src/server/shared/Database/Implementation/CharacterDatabase.cpp:
 
 	// Mercenary
     PrepareStatement(CHAR_INS_MERCENARY, "INSERT INTO mercenaries VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_BOTH);
-    PrepareStatement(CHAR_INS_MERCENARY_ACTION, "INSERT INTO mercenary_actions (guid, ownerGUID, isCast, spellId, castTimer, healPct, castPct) VALUES(?, ?, ?, ?, ?, ?, ?)", CONNECTION_BOTH);
     PrepareStatement(CHAR_UPD_MERCENARY_SUMMON, "UPDATE mercenaries SET summoned=? WHERE Id=?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_INS_MERCENARY_GEAR, "INSERT INTO mercenary_gear (guid, itemId, slot) VALUES (?, ?, ?)", CONNECTION_BOTH);
     PrepareStatement(CHAR_UPD_MERCENARY_GEAR, "UPDATE mercenary_gear SET itemId=? WHERE guid=? AND slot=?", CONNECTION_ASYNC);
@@ -37,12 +35,21 @@ Put this in src/server/shared/Database/Implementation/CharacterDatabase.cpp:
 ##Player.cpp
 
 * Go to: src/server/game/Entities/Player.cpp
-Include MercenaryMgr header: #include "MercenaryMgr.h"
+* Include MercenaryMgr header: #include "MercenaryMgr.h"
 
 * Find: void Player::SaveToDB(bool create /*=false*/)
-At the bottom of the function add the following code:
+* Search for:
 
-    sMercenaryMgr->UpdateGear(this);
+     if (Pet* pet = GetPet())
+         pet->SavePetToDB(PET_SAVE_AS_CURRENT);
+		 
+* And replace it with:
+
+    if (Pet* pet = GetPet())
+    {
+        pet->SavePetToDB(PET_SAVE_AS_CURRENT);
+        sMercenaryMgr->OnSave(this, pet);
+    }
 
 ##Pet.cpp
 
