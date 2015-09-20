@@ -1,3 +1,23 @@
+9/20/2015
+General
+- Updated documentation with the newest changes
+- Table `mercenaries` and `mercenary_gear` columns have changed.
+- Added 'Mercenary::DeleteFromDB' method. This will delete Mercenary data from its appropriate tables
+- Mercenaries will now use character_pet table. `mercenaries` table still exists for keeping their own custom data stored & loaded after pet is loaded by 'LoadPetFromDB'. This is mainly to lift conflicts between character_pet and mercenaries
+- When in the process of creating your Mercenary, before initial data is stored via 'Mercenary::Create(..)' it will now store a fakeNumber. This is to prevent wasting Guids if using 'GeneratePetNumber()', and duplicate entries.
+- Saving your Mercenary will now be done through the OnSave hook. [TrinityCore Only]
+- Removed primary keys from mercenary_gear
+- Removed UpdateZone check for re-summoning your Mercenary since things have changing in this commit
+- Removed unused parameter in Mercenary::Create method
+- Reworked 'Mercenary::Initialize' due to the recent changes
+
+Fixes
+- Fixed gear not saving right or at all because of the primary keys set in mercenary_gear
+- Fixed pet level not storing correctly
+- Potentially fixed gear not loading correctly or cause a crash when trying to loaded
+- Fixed pet tab not showing at all [Mangos Only]
+- Fixed Mercenary appearing as dead [Mangos Only]
+
 9/19/2015
 General
 - Updated documentation with the newest changes.

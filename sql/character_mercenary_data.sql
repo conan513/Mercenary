@@ -6,14 +6,10 @@ CREATE TABLE `mercenaries` (
   `Id` int(10) unsigned NOT NULL DEFAULT '0',
   `ownerGUID` int(10) unsigned NOT NULL DEFAULT '0',
   `role` tinyint(3) unsigned NOT NULL DEFAULT '0',
-  `entryId` int(10) unsigned NOT NULL DEFAULT '0',
   `displayId` int(10) unsigned NOT NULL DEFAULT '0',
   `race` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `gender` tinyint(3) unsigned NOT NULL,
   `type` tinyint(3) unsigned NOT NULL DEFAULT '0',
-  `name` varchar(21) NOT NULL DEFAULT 'Pet',
-  `level` smallint(5) unsigned NOT NULL DEFAULT '1',
-  `xp` int(10) unsigned NOT NULL DEFAULT '0',
   `minDamage` float NOT NULL DEFAULT '100',
   `maxDamage` float NOT NULL DEFAULT '100',
   `attackTime` int(10) unsigned NOT NULL DEFAULT '2000',
@@ -24,7 +20,6 @@ CREATE TABLE `mercenaries` (
   `spirit` int(10) unsigned NOT NULL DEFAULT '27',
   `health` int(10) unsigned NOT NULL DEFAULT '1',
   `mana` int(10) unsigned NOT NULL DEFAULT '0',
-  `happiness` int(10) unsigned NOT NULL DEFAULT '0',
   `summoned` tinyint(1) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`Id`),
   KEY `ownerGUID` (`ownerGUID`)
@@ -37,8 +32,7 @@ DROP TABLE IF EXISTS `mercenary_gear`;
 CREATE TABLE `mercenary_gear` (
   `guid` int(10) unsigned NOT NULL,
   `itemId` mediumint(8) unsigned NOT NULL DEFAULT '0',
-  `slot` tinyint(3) unsigned NOT NULL DEFAULT '0',
-  PRIMARY KEY (`guid`,`itemId`,`slot`)
+  `slot` tinyint(3) unsigned NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- ----------------------------

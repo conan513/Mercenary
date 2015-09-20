@@ -45,6 +45,11 @@ public:
     */
     void SaveToList(Mercenary* mercenary);
     /*
+    /*
+    * Deletes Mercenary from a container
+    */
+    void DeleteFromList(Mercenary* mercenary);
+    /*
     * Sets if the Mercenary is currently summoned
     */
     void UpdateSummoned(uint32 Id, bool summoned);
@@ -54,6 +59,10 @@ public:
     * Cals when players saves
     */
     void OnSave(Player* player, Pet* pet);
+    /*
+    * On Mercenary delete when a character with Mercenaries was deleted
+    */
+    void OnDelete(uint32 guidLow);
     /*
     * On Mercenary summon
     * Calls when you change zones
@@ -69,6 +78,15 @@ public:
     MercenarySpellsMap::const_iterator MercenarySpellsEnd() const { return MercenarySpellsContainer.end(); }
     MercenaryTalkMap::const_iterator MercenaryTalkBegin() const { return MercenaryTalkContainer.begin(); }
     MercenaryTalkMap::const_iterator MercenaryTalkEnd() const { return MercenaryTalkContainer.end(); }
+
+    uint32 MaxMercenaryId() const
+    {
+        if (MercenaryContainer.empty())
+            return 1;
+
+        auto& max_key = std::max_element(MercenaryBegin(), MercenaryEnd(), MercenaryContainer.value_comp());
+        return max_key->first;
+    }
 
     /*
     * Returns Mercenary's class by search for pet's guid

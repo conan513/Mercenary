@@ -1,50 +1,42 @@
-// File: src/server/game/Entities/Player.cpp
-@@ -80,10 +80,11 @@
+// File: src/server/game/Entities/Pet.cpp
+@@ -29,10 +29,11 @@
+ #include "SpellAuraEffects.h"
+ #include "Unit.h"
+ #include "Util.h"
+ #include "Group.h"
  #include "WorldSession.h"
- #include "GameObjectAI.h"
- #ifdef ELUNA
- #include "LuaEngine.h"
- #endif
 +#include "MercenaryMgr.h"
  
- #define ZONE_UPDATE_INTERVAL (1*IN_MILLISECONDS)
+ #define PET_XP_FACTOR 0.05f
  
- #define PLAYER_SKILL_INDEX(x)       (PLAYER_SKILL_INFO_1_1 + ((x)*3))
- #define PLAYER_SKILL_VALUE_INDEX(x) (PLAYER_SKILL_INDEX(x)+1)
-@@ -19388,12 +19389,15 @@ void Player::SaveToDB(bool create /*=false*/)
-         _SaveStats(trans);
+ Pet::Pet(Player* owner, PetType type) :
+     Guardian(NULL, owner, true), m_usedTalentCount(0), m_removed(false),
+@@ -310,10 +311,12 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petEntry, uint32 petnumber, bool c
+     }
+ 
+     owner->SetMinion(this, true);
+     map->AddToMap(this->ToCreature());
+ 
++    sMercenaryMgr->OnSummon(owner);
++
+     InitTalentForLevel();                                   // set original talents points before spell loading
+ 
+     uint32 timediff = uint32(time(NULL) - fields[14].GetUInt32());
+     _LoadAuras(timediff);
+ 
+@@ -507,10 +510,12 @@ void Pet::DeleteFromDB(uint32 guidlow)
+     stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_PET_SPELL_COOLDOWNS);
+     stmt->setUInt32(0, guidlow);
+     trans->Append(stmt);
  
      CharacterDatabase.CommitTransaction(trans);
- 
-     // save pet (hunter pet level and experience and all type pets health/mana).
--    if (Pet* pet = GetPet())
--        pet->SavePetToDB(PET_SAVE_AS_CURRENT);
-+	if (Pet* pet = GetPet())
-+	{
-+		pet->SavePetToDB(PET_SAVE_AS_CURRENT);
-+		sMercenaryMgr->OnSave(this, pet);
-+	}
++
++    sMercenaryMgr->OnDelete(guidlow);
  }
  
- // fast save function for item/money cheating preventing - save only inventory and money state
- void Player::SaveInventoryAndGoldToDB(SQLTransaction& trans)
+ void Pet::setDeathState(DeathState s)                       // overwrite virtual Creature::setDeathState and Unit::setDeathState
  {
-
-// File: src/server/game/Entities/Pet.cpp
-@@ -372,10 +372,13 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petEntry, uint32 petnumber, bool c
- void Pet::SavePetToDB(PetSaveMode mode)
- {
-     if (!GetEntry())
-         return;
- 
-+    if (GetScriptName() == "mercenary_bot")
-+        return;
-+
-     // save only fully controlled creature
-     if (!isControlled())
-         return;
- 
-     // not save not player pets
+     Creature::setDeathState(s);
 
 // File: src/server/game/AI/CreatureAISelector.cpp
 @ -30,11 +30,11 @@ namespace FactorySelector

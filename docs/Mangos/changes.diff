@@ -67,21 +67,43 @@
                  { return scriptedAI; }
  
          CreatureAIRegistry& ai_registry(CreatureAIRepository::Instance());
-			 
-@@ -341,10 +341,13 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry, uint32 petnumber, bool c
- void Pet::SavePetToDB(PetSaveMode mode)
- {
-     if (!GetEntry())
-         { return; }
+		 
+@@ -31,10 +31,11 @@
+ #include "Formulas.h"
+ #include "SpellAuras.h"
+ #include "CreatureAI.h"
+ #include "Unit.h"
+ #include "Util.h"
++#include "MercenaryMgr.h"
  
-+    if (GetScriptName() == "mercenary_bot")
-+        return;
+ Pet::Pet(PetType type) :
+     Creature(CREATURE_SUBTYPE_PET),
+     m_resetTalentsCost(0), m_resetTalentsTime(0), m_usedTalentCount(0),
+     m_removed(false), m_happinessTimer(7500), m_petType(type), m_duration(0),
+@@ -302,10 +303,11 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry, uint32 petnumber, bool c
+     CleanupActionBar();                                     // remove unknown spells from action bar after load
+ 
+     _LoadSpellCooldowns();
+ 
+     owner->SetPet(this);                                    // in DB stored only full controlled creature
++    sMercenaryMgr->OnSummon(owner);
+     DEBUG_LOG("New Pet has guid %u", GetGUIDLow());
+ 
+     if (owner->GetTypeId() == TYPEID_PLAYER)
+     {
+         ((Player*)owner)->PetSpellInitialize();
+@@ -479,10 +481,12 @@ void Pet::DeleteFromDB(uint32 guidlow, bool separate_transaction)
+     stmt.PExecute(guidlow);
+ 
+     stmt = CharacterDatabase.CreateStatement(delSpellCD, "DELETE FROM pet_spell_cooldown WHERE guid = ?");
+     stmt.PExecute(guidlow);
+ 
++    sMercenaryMgr->OnDelete(guidlow);
 +
-     // save only fully controlled creature
-     if (!isControlled())
-         { return; }
- 
-     // not save not player pets
+     if (separate_transaction)
+         { CharacterDatabase.CommitTransaction(); }
+ }
+
  
 @@ -74,10 +74,11 @@
  #include "Calendar.h"
@@ -95,20 +117,6 @@
  
  #define ZONE_UPDATE_INTERVAL (1*IN_MILLISECONDS)
  
-@@ -6941,10 +6942,13 @@ void Player::UpdateZone(uint32 newZone, uint32 newArea)
-     }
- 
- #ifdef ENABLE_ELUNA
-     sEluna->OnUpdateZone(this, newZone, newArea);
- #endif
-+
-+    if ((newZone || newArea) && !GetPet())
-+        sMercenaryMgr->OnSummon(this);
-     
-     m_zoneUpdateId    = newZone;
-     m_zoneUpdateTimer = ZONE_UPDATE_INTERVAL;
- 
-     // zone changed, so area changed as well, update it
 @@ -17414,11 +17418,14 @@ void Player::SaveToDB()
      if (m_session->isLogingOut() || !sWorld.getConfig(CONFIG_BOOL_STATS_SAVE_ONLY_ON_LOGOUT))
          _SaveStats();

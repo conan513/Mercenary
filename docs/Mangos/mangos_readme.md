@@ -1,7 +1,9 @@
 #READ CAREFULLY!
 
-These edits are important. Make sure you add them all. If you need help view the diff files.
+These edits are important. Make sure you add them all. If you need help view the diff file(s).
 mercenary_bot is the Mercenary's Script Name in this project. It should not be changed unless you know what you are doing.
+
+This particular README is for manually implementing this system.
 
 Apply the sqls!
 Don't forget to setup mercenary_gossip.cpp in the ScriptLoader!
@@ -43,23 +45,32 @@ Following files goes in src\modules\SD2\scripts\world
             pet->SavePetToDB(PET_SAVE_AS_CURRENT);
             sMercenaryMgr->OnSave(this, pet);
         }
-	
-* Find: void Player::UpdateZone(uint32 newZone, uint32 newArea)
-* Above: m_zoneUpdateId    = newZone;
-* Add the following code:
-
-        if ((newZone || newArea) && !GetPet())
-            sMercenaryMgr->OnSummon(this);
 
 
 ##Pet.cpp
 
 * Go to: src/game/Object/Pet.cpp
-* Search for: void Pet::SavePetToDB(PetSaveMode mode)
-* Add the code below, below 'GetEntry()' if statement: 
+* Include MercenaryMgr header: #include "MercenaryMgr.h"
+* Search for: bool Pet::LoadPetFromDB(Player* owner, uint32 petentry, uint32 petnumber, bool current))
+* Add the following code:
 
-        if (GetScriptName() == "mercenary_bot")
-            return;
+        sMercenaryMgr->OnSummon(owner);
+
+* UNDER (VERY IMPORTANT):
+
+        owner->SetPet(this);                                    // in DB stored only full controlled creature
+		
+		
+* Still in: src/game/Object/Pet.cpp
+* Search for: void Pet::DeleteFromDB(uint32 guidlow, bool separate_transaction)
+* At the bottom of the function, add the following code:
+
+        sMercenaryMgr->OnDelete(guidlow);
+		
+ABOVE (IMPORTANT):
+
+        if (separate_transaction)
+            { CharacterDatabase.CommitTransaction(); }
 
 
 ##CreatureAISelector.cpp

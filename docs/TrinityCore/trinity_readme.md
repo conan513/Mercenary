@@ -1,7 +1,9 @@
 #READ CAREFULLY!
 
-These edits are important. Make sure you add them all. If you need help view the diff files.
+These edits are important. Make sure you add them all. If you need help view the diff file(s).
 mercenary_bot is the Mercenary's Script Name in this project. It should not be changed unless you know what you are doing.
+
+This particular README is for manually implementing this system.
 
 Apply the sqls!
 Don't forget to setup mercenary_gossip.cpp in the ScriptLoader!
@@ -18,47 +20,44 @@ Following files goes in src\server\scripts\Custom
 * Put this in src/server/shared/Database/Implementation/CharacterDatabase.h (above MAX_CHARACTERDATABASE_STATEMENTS):
 
         CHAR_INS_MERCENARY,
+        CHAR_DEL_MERCENARY,
         CHAR_UPD_MERCENARY_SUMMON,
         CHAR_INS_MERCENARY_GEAR,
         CHAR_UPD_MERCENARY_GEAR,
-        CHAR_UPD_MERCENARY_NAME
+        CHAR_UPD_MERCENARY_NAME,
+        CHAR_DEL_MERCENARY_GEAR
 
 * Put this in src/server/shared/Database/Implementation/CharacterDatabase.cpp:
 
         // Mercenary
         PrepareStatement(CHAR_INS_MERCENARY, "INSERT INTO mercenaries VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_BOTH);
+        PrepareStatement(CHAR_DEL_MERCENARY, "DELETE FROM mercenaries WHERE Id=?", CONNECTION_ASYNC);
         PrepareStatement(CHAR_UPD_MERCENARY_SUMMON, "UPDATE mercenaries SET summoned=? WHERE Id=?", CONNECTION_ASYNC);
         PrepareStatement(CHAR_INS_MERCENARY_GEAR, "INSERT INTO mercenary_gear (guid, itemId, slot) VALUES (?, ?, ?)", CONNECTION_BOTH);
         PrepareStatement(CHAR_UPD_MERCENARY_GEAR, "UPDATE mercenary_gear SET itemId=? WHERE guid=? AND slot=?", CONNECTION_ASYNC);
         PrepareStatement(CHAR_UPD_MERCENARY_NAME, "UPDATE mercenaries SET name=? WHERE Id=? and ownerGUID=?", CONNECTION_ASYNC);
+        PrepareStatement(CHAR_DEL_MERCENARY_GEAR, "DELETE FROM mercenary_gear WHERE guid=?", CONNECTION_ASYNC);
 
-##Player.cpp
-
-* Go to: src/server/game/Entities/Player.cpp
-* Include MercenaryMgr header: #include "MercenaryMgr.h"
-
-* Find: void Player::SaveToDB(bool create /*=false*/)
-* Search for:
-
-        if (Pet* pet = GetPet())
-             pet->SavePetToDB(PET_SAVE_AS_CURRENT);
-		 
-* And replace it with:
-
-        if (Pet* pet = GetPet())
-        {
-            pet->SavePetToDB(PET_SAVE_AS_CURRENT);
-            sMercenaryMgr->OnSave(this, pet);
-        }
 
 ##Pet.cpp
 
 * Go to: src/server/game/Entities/Pet.cpp
-* Search for: void Pet::SavePetToDB(PetSaveMode mode)
-* Add the code below, below 'GetEntry()' if statement: 
+* Include MercenaryMgr header: #include "MercenaryMgr.h"
+* Search for: bool Pet::LoadPetFromDB(Player* owner, uint32 petEntry, uint32 petnumber, bool current)
+* Add the following code:
 
-        if (GetScriptName() == "mercenary_bot")
-            return;
+        sMercenaryMgr->OnSummon(owner);
+
+* UNDER (VERY IMPORTANT):
+
+        map->AddToMap(this->ToCreature());
+		
+		
+* Still in: src/server/game/Entities/Pet.cpp
+* Search for: void Pet::DeleteFromDB(uint32 guidlow)
+* At the bottom of the function, add the following code:
+
+        sMercenaryMgr->OnDelete(guidlow);
 
 ##CreatureAISelector.cpp
 

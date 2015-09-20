@@ -146,7 +146,7 @@ public:
     * Temporarily adds a new Mercenary being created into the Mercenary map
     * If creation of this temporary Mercenary isn't finished the Mercenary will NOT save
     */
-    bool Create(Player* player, uint32 entry);
+    bool Create(Player* player);
     /*
     * Creates and spawns the Mercenary
     */
@@ -193,10 +193,6 @@ public:
     */
     void SetEditSlot(const uint8 slot) { editSlot = slot; }
     /*
-    * Sets Mercenary's name
-    */
-    void SetName(std::string const& newName) { name = newName; }
-    /*
     * Updates the Mercenary's Max Power
     */
     void UpdateMaxPower(Powers /* power */, Pet* pet);
@@ -224,6 +220,10 @@ public:
     * Saves the Mercenary's gear to the database
     */
     void SaveGearToDB();
+    /*
+    * Deletes the Mercenary from the database (does not include character_pet)
+    */
+    void DeleteFromDB();
     /*
     * Sends the Mirror Image packet after equipping new armor
     */
@@ -269,14 +269,10 @@ public:
     uint32 GetId() const { return Id; }
     uint32 GetOwnerGUID() const { return ownerGUID; }
     uint8 GetRole() const { return role; }
-    uint32 GetEntry() const { return entryId; }
     uint32 GetDisplay() const { return displayId; }
     uint8 GetRace() const { return race; }
     uint8 GetGender() const { return gender; }
     uint8 GetType() const { return type; }
-    std::string GetName() const { return name; }
-    uint8 GetLevel() const { return level; }
-    uint32 GetXP() const { return xp; }
     float GetMinDamage() const { return minDamage; }
     float GetMaxDamage() const { return maxDamage; }
     uint32 GetAttackTime() const { return attackTime; }
@@ -287,7 +283,6 @@ public:
     uint32 GetSpirit() const { return spirit; }
     uint32 GetHealth() const { return health; }
     uint32 GetMana() const { return mana; }
-    uint32 GetHappiness() const { return happiness; }
     bool IsSummoned() const { return summoned; }
     bool IsBeingCreated() const { return beingCreated; }
     uint8 GetEditSlot() const { return editSlot; }
@@ -378,14 +373,10 @@ private:
     uint32 Id;
     uint32 ownerGUID;
     uint8 role;
-    uint32 entryId;
     uint32 displayId;
     uint8 race;
     uint8 gender;
     uint8 type;
-    std::string name;
-    uint8 level;
-    uint32 xp;
     float minDamage;
     float maxDamage;
     uint32 attackTime;
@@ -396,7 +387,6 @@ private:
     uint32 spirit;
     uint32 health;
     uint32 mana;
-    uint32 happiness;
     bool summoned;
     bool beingCreated;
     uint8 editSlot;

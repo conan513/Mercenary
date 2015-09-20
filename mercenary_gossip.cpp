@@ -25,10 +25,13 @@ class mercenary_player : public PlayerScript
 public:
     mercenary_player() : PlayerScript("mercenary_player") { }
 
-    void OnUpdateZone(Player* player, uint32 newZone, uint32 newArea) override
+    void OnSave(Player* player) override
     {
-        if ((newZone || newArea) && !player->GetPet())
-            sMercenaryMgr->OnSummon(player);
+        Pet* pet = player->GetPet();
+        if (!pet)
+            return false;
+
+        sMercenaryMgr->OnSave(player);
     }
 };
 #endif
@@ -59,7 +62,7 @@ public:
         if (!mercenary)
         {
             mercenary = new Mercenary;
-            if (!mercenary->Create(player, MERCENARY_DEFAULT_ENTRY))
+            if (!mercenary->Create(player))
             {
                 session->SendNotification("Failed to create Mercenary!");
                 return false;
@@ -653,7 +656,6 @@ public:
                 }
             }
 
-            mercenary->SetName(name);
             creature->SetName(name);
 
 #ifndef MANGOS
@@ -663,7 +665,7 @@ public:
             stmt->setUInt32(2, mercenary->GetOwnerGUID());
             CharacterDatabase.Execute(stmt);
 #else
-            CharacterDatabase.PExecute("UPDATE mercenaries SET name='%s' WHERE Id='%u' AND ownerGUID='%u'", name.c_str(), mercenary->GetId(), player->GetGUIDLow());
+            CharacterDatabase.PExecute("UPDATE character_pet SET name='%s' WHERE Id='%u' AND owner='%u'", name.c_str(), mercenary->GetId(), player->GetGUIDLow());
 #endif
         }
 

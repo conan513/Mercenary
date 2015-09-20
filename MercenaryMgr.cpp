@@ -22,6 +22,11 @@ void MercenaryMgr::SaveToList(Mercenary* mercenary)
     MercenaryContainer[mercenary->GetId()] = mercenary;
 }
 
+void MercenaryMgr::DeleteFromList(Mercenary* mercenary)
+{
+    MercenaryContainer.erase(mercenary->GetId());
+}
+
 void MercenaryMgr::LoadMercenaries()
 {
 #ifndef MANGOS
@@ -100,8 +105,8 @@ void MercenaryMgr::LoadMercenaries()
         } while (result->NextRow());
     }
 
-    result = CharacterDatabase.Query("SELECT Id, ownerGUID, role, entryId, displayId, race, gender, type, name, level, xp, minDamage, maxDamage, attackTime, "
-        "strength, agility, stamina, intellect, spirit, health, mana, happiness, summoned FROM mercenaries");
+    result = CharacterDatabase.Query("SELECT Id, ownerGUID, role, displayId, race, gender, type, minDamage, maxDamage, attackTime, "
+        "strength, agility, stamina, intellect, spirit, health, mana, summoned FROM mercenaries");
     if (result)
     {
         do
@@ -160,8 +165,17 @@ void MercenaryMgr::OnSave(Player* player, Pet* pet)
     }
 }
 
+void MercenaryMgr::OnDelete(uint32 guidLow)
+{
+    Mercenary* mercenary = GetMercenary(guidLow);
+    if (!mercenary)
+        return;
+
+    mercenary->DeleteFromDB();
+}
+
 void MercenaryMgr::OnSummon(Player* player)
 {
-    if (Mercenary* mercenary = sMercenaryMgr->GetMercenaryByOwner(player->GetGUIDLow()))
+    if (Mercenary* mercenary = GetMercenaryByOwner(player->GetGUIDLow()))
         mercenary->Summon(player);
 }
