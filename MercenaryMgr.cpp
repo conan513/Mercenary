@@ -150,19 +150,7 @@ void MercenaryMgr::OnSave(Player* player, Pet* pet)
         return;
 
     if (!mercenary->IsBeingCreated())
-    {
         mercenary->UpdateGear();
-#ifdef MANGOS
-        pet->_SaveSpells();
-        pet->_SaveAuras();
-        pet->_SaveSpellCooldowns();
-#else
-        SQLTransaction trans = CharacterDatabase.BeginTransaction();
-        pet->_SaveSpells(trans);
-        pet->_SaveAuras(trans);
-        CharacterDatabase.CommitTransaction(trans);
-#endif
-    }
 }
 
 void MercenaryMgr::OnDelete(uint32 guidLow)
