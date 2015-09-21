@@ -1,6 +1,7 @@
 /*
     ©2013-2015 EmuDevs <http://www.emudevs.com/>
     MaNGOS <http://getmangos.eu>
+    TrinityCore <http://www.trinitycore.org>
 */
 #include "MercenaryMgr.h"
 

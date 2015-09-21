@@ -1,12 +1,10 @@
 /*
     ©2013-2015 EmuDevs <http://www.emudevs.com/>
     MaNGOS <http://getmangos.eu>
+    TrinityCore <http://www.trinitycore.org>
 */
 #include "MercenaryMgr.h"
 #include "PetAI.h"
-#ifndef MANGOS
-#include "Config.h"
-#endif
 
 #ifndef MANGOS
 class mercenary_world_load : public WorldScript

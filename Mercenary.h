@@ -1,6 +1,7 @@
 /*
     ©2013-2015 EmuDevs <http://www.emudevs.com/>
     MaNGOS <http://getmangos.eu>
+    TrinityCore <http://www.trinitycore.org>
 */
 #ifndef MERCENARY_H
 #define MERCENARY_H
