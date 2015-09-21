@@ -10,16 +10,11 @@ CREATE TABLE `mercenaries` (
   `race` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `gender` tinyint(3) unsigned NOT NULL,
   `type` tinyint(3) unsigned NOT NULL DEFAULT '0',
-  `minDamage` float NOT NULL DEFAULT '100',
-  `maxDamage` float NOT NULL DEFAULT '100',
-  `attackTime` int(10) unsigned NOT NULL DEFAULT '2000',
   `strength` int(10) unsigned NOT NULL DEFAULT '22',
   `agility` int(10) unsigned NOT NULL DEFAULT '22',
   `stamina` int(10) unsigned NOT NULL DEFAULT '25',
   `intellect` int(10) unsigned NOT NULL DEFAULT '28',
   `spirit` int(10) unsigned NOT NULL DEFAULT '27',
-  `health` int(10) unsigned NOT NULL DEFAULT '1',
-  `mana` int(10) unsigned NOT NULL DEFAULT '0',
   `summoned` tinyint(1) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`Id`),
   KEY `ownerGUID` (`ownerGUID`)
@@ -83,18 +78,16 @@ INSERT INTO `mercenary_start_gear` VALUES ('10', '2', '41016', '41041', '40987',
 -- ----------------------------
 DROP TABLE IF EXISTS `mercenary_talk`;
 CREATE TABLE `mercenary_talk` (
-  `entry` int(10) NOT NULL AUTO_INCREMENT,
   `type` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `role` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `healthpct` smallint(5) NOT NULL DEFAULT '100',
-  `message` varchar(255) NOT NULL,
-  PRIMARY KEY (`entry`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
+  `message` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- ----------------------------
 -- Records of mercenary_talk
 -- ----------------------------
-INSERT INTO `mercenary_talk` VALUES ('1', '1', '1', '100', 'RAWR! Did I scare you?');
-INSERT INTO `mercenary_talk` VALUES ('2', '1', '1', '100', 'I\'m a melee Warrior!');
-INSERT INTO `mercenary_talk` VALUES ('3', '1', '1', '100', 'Do you think Blood Elves are hot?');
-INSERT INTO `mercenary_talk` VALUES ('4', '2', '1', '100', 'The light..');
+INSERT INTO `mercenary_talk` VALUES ('1', '1', '100', 'RAWR! Did I scare you?');
+INSERT INTO `mercenary_talk` VALUES ('1', '1', '100', 'I\'m a melee Warrior!');
+INSERT INTO `mercenary_talk` VALUES ('1', '1', '100', 'Do you think Blood Elves are hot?');
+INSERT INTO `mercenary_talk` VALUES ('2', '1', '100', 'The light..');

@@ -1,3 +1,19 @@
+9/21/2015
+General
+- Added real MaNGOS (mangostwo) 3.3.5 TrinityCore 3.3.5 diffs of this system
+- Added 'GetAIName()' to MercenaryMgr and updated all core modifications with the said method when checking 'GetScriptName()'
+- Removed docs since I didn't expect them to be at all good to implement this system
+- Removed minDamage, maxDamage, health, mana and attackTime columns from mercenaries table & in Mercenary header. min/max damage & attackTime stats are calculated in-game and shouldn't be really saved. Health and mana are already saved in character_pet table
+- Reworked mercenary_talk and mercenary_starter_gear by moving them to vectors and removing 'entry' from mercenary_talk table since entry was pointless since there's more roles per type
+- "[Unlearn]" text is now spaced by 1 block to prevent it from hugging the spell icon
+- Did more cleaning up
+
+Fixes
+- Fixed minimum Mercenary damage not being correct when equipping a weapon
+- Fixed pet tab not showing once you relog [TrintyCore Only]
+- Fixed item required level check *once again*. This time it is fixed, as I was comparing two values wrong before
+- Fixed TrinityCore compile crash
+
 9/20/2015
 General
 - Updated documentation with the newest changes

@@ -29,9 +29,9 @@ public:
     {
         Pet* pet = player->GetPet();
         if (!pet)
-            return false;
+            return;
 
-        sMercenaryMgr->OnSave(player);
+        sMercenaryMgr->OnSave(player, pet);
     }
 };
 #endif
@@ -596,7 +596,7 @@ public:
                         {
                             if (pet->HasSpell(it->spellId))
                             {
-                                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, mercenary->GetSpellIcon(it->spellId, player->GetSession()) + "[Unlearn]", 0, it->spellId);
+                                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, mercenary->GetSpellIcon(it->spellId, player->GetSession()) + " [Unlearn]", 0, it->spellId);
                                 removingSpell = true;
                             }
                         }

@@ -16,7 +16,7 @@
 #include "ObjectMgr.h"
 #endif
 
-struct MercenarySpells
+struct MercenarySpell
 {
     uint8 type;
     uint8 role;
@@ -33,8 +33,9 @@ struct MercenaryGear
         : itemId(itemEntry), slot(slotId) { }
 };
 
-struct MercenaryStartGear
+struct MercenaryStarterGear
 {
+    uint8 mercenaryType;
     uint8 mercenaryRole;
     uint32 headEntry;
     uint32 shoulderEntry;
@@ -273,16 +274,11 @@ public:
     uint8 GetRace() const { return race; }
     uint8 GetGender() const { return gender; }
     uint8 GetType() const { return type; }
-    float GetMinDamage() const { return minDamage; }
-    float GetMaxDamage() const { return maxDamage; }
-    uint32 GetAttackTime() const { return attackTime; }
     uint32 GetStrength() const { return strength; }
     uint32 GetAgility() const { return agility; }
     uint32 GetStamina() const { return stamina; }
     uint32 GetIntellect() const { return intellect; }
     uint32 GetSpirit() const { return spirit; }
-    uint32 GetHealth() const { return health; }
-    uint32 GetMana() const { return mana; }
     bool IsSummoned() const { return summoned; }
     bool IsBeingCreated() const { return beingCreated; }
     uint8 GetEditSlot() const { return editSlot; }
@@ -366,9 +362,6 @@ public:
         return true;
     }
 
-protected:
-    Gear GearContainer;
-
 private:
     uint32 Id;
     uint32 ownerGUID;
@@ -377,19 +370,16 @@ private:
     uint8 race;
     uint8 gender;
     uint8 type;
-    float minDamage;
-    float maxDamage;
-    uint32 attackTime;
     uint32 strength;
     uint32 agility;
     uint32 stamina;
     uint32 intellect;
     uint32 spirit;
-    uint32 health;
-    uint32 mana;
     bool summoned;
     bool beingCreated;
     uint8 editSlot;
+
+    Gear GearContainer;
 };
 
 typedef std::unordered_map<uint32, Mercenary*> MercenaryMap;

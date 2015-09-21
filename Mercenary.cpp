@@ -52,17 +52,12 @@ bool Mercenary::LoadFromDB(QueryResult result)
     race = fields[4].GetUInt8();
     gender = fields[5].GetUInt8();
     type = fields[6].GetUInt8();
-    minDamage = fields[7].GetFloat();
-    maxDamage = fields[8].GetFloat();
-    attackTime = fields[9].GetFloat();
-    strength = fields[10].GetUInt32();
-    agility = fields[11].GetUInt32();
-    stamina = fields[12].GetUInt32();
-    intellect = fields[13].GetUInt32();
-    spirit = fields[14].GetUInt32();
-    health = fields[15].GetUInt32();
-    mana = fields[16].GetUInt32();
-    summoned = fields[17].GetBool();
+    strength = fields[7].GetUInt32();
+    agility = fields[8].GetUInt32();
+    stamina = fields[9].GetUInt32();
+    intellect = fields[10].GetUInt32();
+    spirit = fields[11].GetUInt32();
+    summoned = fields[12].GetBool();
 
     LoadGearFromDB();
 
@@ -82,17 +77,12 @@ void Mercenary::SaveToDB()
     stmt->setUInt8(4, race);
     stmt->setUInt8(5, gender);
     stmt->setUInt8(6, type);
-    stmt->setFloat(7, minDamage);
-    stmt->setFloat(8, maxDamage);
-    stmt->setUInt32(9, attackTime);
-    stmt->setUInt32(10, strength);
-    stmt->setUInt32(11, agility);
-    stmt->setUInt32(12, stamina);
-    stmt->setUInt32(13, intellect);
-    stmt->setUInt32(14, spirit);
-    stmt->setUInt32(15, health);
-    stmt->setUInt32(16, mana);
-    stmt->setBool(17, summoned);
+    stmt->setUInt32(7, strength);
+    stmt->setUInt32(8, agility);
+    stmt->setUInt32(9, stamina);
+    stmt->setUInt32(10, intellect);
+    stmt->setUInt32(11, spirit);
+    stmt->setBool(12, summoned);
 
     trans->Append(stmt);
     CharacterDatabase.CommitTransaction(trans);
@@ -101,8 +91,7 @@ void Mercenary::SaveToDB()
 
     static SqlStatementID insMerc;
     SqlStatement saveMerc = CharacterDatabase.CreateStatement(insMerc, "INSERT INTO mercenaries (Id, ownerGUID, role, displayId, race, gender, type, "
-        "minDamage, maxDamage, attackTime, strength, agility, stamina, intellect, spirit, health, mana, summoned) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        "strength, agility, stamina, intellect, spirit, summoned) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
     saveMerc.addUInt32(Id);
     saveMerc.addUInt32(ownerGUID);
@@ -111,16 +100,11 @@ void Mercenary::SaveToDB()
     saveMerc.addUInt8(race);
     saveMerc.addUInt8(gender);
     saveMerc.addUInt8(type);
-    saveMerc.addFloat(minDamage);
-    saveMerc.addFloat(maxDamage);
-    saveMerc.addUInt32(attackTime);
     saveMerc.addUInt32(strength);
     saveMerc.addUInt32(agility);
     saveMerc.addUInt32(stamina);
     saveMerc.addUInt32(intellect);
     saveMerc.addUInt32(spirit);
-    saveMerc.addUInt32(health);
-    saveMerc.addUInt32(mana);
     saveMerc.addBool(summoned);
 
     saveMerc.Execute();
@@ -197,16 +181,11 @@ bool Mercenary::Create(Player* player)
     race = 0;
     gender = GENDER_NONE;
     type = MERCENARY_TYPE_NONE;
-    minDamage = 0;
-    maxDamage = 0;
-    attackTime = 0;
     strength = 0;
     agility = 0;
     stamina = 0;
     intellect = 0;
     spirit = 0;
-    health = 0;
-    mana = 0;
     summoned = false;
     beingCreated = true;
 
@@ -291,16 +270,11 @@ bool Mercenary::Create(Player* player, uint32 model, uint8 r, uint8 g, uint8 mer
     pet->MonsterSay("Thanks for choosing me as your mercenary! If you need help or if you want to change what I do, talk to me.", LANG_UNIVERSAL, player);
     pet->MonsterSay("Don't forget to setup my skills, actions and gear!", LANG_UNIVERSAL, player);
 #endif
-    minDamage = pet->GetFloatValue(UNIT_FIELD_MINRANGEDDAMAGE);
-    maxDamage = pet->GetFloatValue(UNIT_FIELD_MAXRANGEDDAMAGE);
-    attackTime = pet->GetAttackTime(BASE_ATTACK);
     strength = pet->GetStat(STAT_STRENGTH);
     agility = pet->GetStat(STAT_AGILITY);
     stamina = pet->GetStat(STAT_STAMINA);
     intellect = pet->GetStat(STAT_INTELLECT);
     spirit = pet->GetStat(STAT_SPIRIT);
-    health = pet->GetMaxHealth();
-    mana = pet->GetMaxPower(POWER_MANA);
     editSlot = -1;
     summoned = true;
     beingCreated = false;
@@ -348,14 +322,9 @@ void Mercenary::Initialize(Player* player, Pet* pet, bool create)
         pet->SetPower(POWER_MANA, pet->GetMaxPower(POWER_MANA));
         pet->SetUInt32Value(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
 
-#ifndef MANGOS
-        pet->SetFullHealth();
-#else
-        pet->SetHealth(pet->GetMaxHealth());
-        pet->SetUInt32Value(UNIT_FIELD_PETNUMBER, GetId());
-#endif
-
         InitStats(player, pet);
+
+        pet->SetUInt32Value(UNIT_FIELD_PETNUMBER, GetId());
 
         for (auto& itr = GearBegin(); itr != GearEnd(); ++itr)
         {
@@ -409,20 +378,20 @@ void Mercenary::Initialize(Player* player, Pet* pet, bool create)
 
         for (auto& itr = sMercenaryMgr->MercenaryStartGearBegin(); itr != sMercenaryMgr->MercenaryStartGearEnd(); ++itr)
         {
-            if (GetType() == itr->first && role == itr->second.mercenaryRole)
+            if (GetType() == itr->mercenaryType && role == itr->mercenaryRole)
             {
-                GearContainer.push_back(MercenaryGear(itr->second.headEntry, SLOT_HEAD));
-                GearContainer.push_back(MercenaryGear(itr->second.shoulderEntry, SLOT_SHOULDERS));
-                GearContainer.push_back(MercenaryGear(itr->second.chestEntry, SLOT_CHEST));
-                GearContainer.push_back(MercenaryGear(itr->second.legEntry, SLOT_LEGS));
-                GearContainer.push_back(MercenaryGear(itr->second.feetEntry, SLOT_FEET));
-                GearContainer.push_back(MercenaryGear(itr->second.handEntry, SLOT_HANDS));
-                GearContainer.push_back(MercenaryGear(itr->second.weaponEntry, SLOT_MAIN_HAND));
-                GearContainer.push_back(MercenaryGear(itr->second.offHandEntry, SLOT_OFF_HAND));
-                GearContainer.push_back(MercenaryGear(itr->second.rangedEntry, SLOT_RANGED));
-                pet->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID, itr->second.weaponEntry);
-                pet->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 1, itr->second.offHandEntry);
-                pet->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 2, itr->second.rangedEntry);
+                GearContainer.push_back(MercenaryGear(itr->headEntry, SLOT_HEAD));
+                GearContainer.push_back(MercenaryGear(itr->shoulderEntry, SLOT_SHOULDERS));
+                GearContainer.push_back(MercenaryGear(itr->chestEntry, SLOT_CHEST));
+                GearContainer.push_back(MercenaryGear(itr->legEntry, SLOT_LEGS));
+                GearContainer.push_back(MercenaryGear(itr->feetEntry, SLOT_FEET));
+                GearContainer.push_back(MercenaryGear(itr->handEntry, SLOT_HANDS));
+                GearContainer.push_back(MercenaryGear(itr->weaponEntry, SLOT_MAIN_HAND));
+                GearContainer.push_back(MercenaryGear(itr->offHandEntry, SLOT_OFF_HAND));
+                GearContainer.push_back(MercenaryGear(itr->rangedEntry, SLOT_RANGED));
+                pet->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID, itr->weaponEntry);
+                pet->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 1, itr->offHandEntry);
+                pet->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 2, itr->rangedEntry);
                 SaveGearToDB();
             }
         }
@@ -491,8 +460,8 @@ bool Mercenary::CanEquipItem(Player* player, Item* item)
         (invType == INVTYPE_2HWEAPON && itemSubClass == ITEM_SUBCLASS_WEAPON_STAFF) || invType == INVTYPE_HOLDABLE) || role == ROLE_MARKSMAN_DPS && ((type == MERCENARY_TYPE_HUNTER) &&
         invType == INVTYPE_WEAPON || invType == INVTYPE_WEAPONMAINHAND || invType == INVTYPE_RANGED || (invType == INVTYPE_2HWEAPON && (itemSubClass == ITEM_SUBCLASS_WEAPON_POLEARM ||
         itemSubClass == ITEM_SUBCLASS_WEAPON_SPEAR)));
-    bool isCorrectLevel = proto->RequiredLevel < pet->getLevel();
-    if (proto->RequiredLevel > 0 && isCorrectLevel)
+    bool isCorrectLevel = pet->getLevel() < proto->RequiredLevel;
+    if (proto->RequiredLevel)
     {
         ChatHandler(session).PSendSysMessage("Equip item failed! Item level is too high. You can equip this item to a Mercenary when they are level %u.", proto->RequiredLevel);
         return false;
@@ -870,7 +839,7 @@ void Mercenary::UpdatePhysicalDamage(WeaponAttackType attackType, Pet* pet)
 #endif
             if (proto)
             {
-                mindamage += proto->Damage[1].DamageMin;
+                mindamage += proto->Damage[0].DamageMin;
                 maxdamage += proto->Damage[0].DamageMax;
             }
         }

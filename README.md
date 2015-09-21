@@ -11,12 +11,12 @@ Subscribe on [EmuDevs Youtube] (https://www.youtube.com/user/EmuDevs) channel fo
 
 This system is still in development and there will be bugs. You can report issues at [EmuDevs](http://emudevs.com/forumdisplay.php/312-Support) or the [Issue Tracker](https://github.com/EmuDevs/Mercenary/issues)
 
-##Documentation
+##Installation
 
-This system requires core changes. View the appropriate documentation (links below) to begin implementing this system.
+This system requires core changes. Below you will find diffs for each emulator supported.
 
-* [MaNGOS Documentation](https://github.com/EmuDevs/Mercenary/blob/master/docs/Mangos/mangos_readme.md)
-* [TrinityCore Documentation](https://github.com/EmuDevs/Mercenary/blob/master/docs/TrinityCore/trinity_readme.md)
+* [MaNGOS Diff](https://github.com/EmuDevs/Mercenary/blob/master/diffs/mangostwo_diff.diff)
+* [TrinityCore Diff](https://github.com/EmuDevs/Mercenary/blob/master/diffs/trinitycore_diff.diff)
 
 ##Links
 * [Mercenary Source] (https://github.com/EmuDevs/Mercenary)

@@ -8,9 +8,9 @@
 #include "Mercenary.h"
 #include <random>
 
-typedef std::vector<MercenarySpells> MercenarySpellsMap;
-typedef std::unordered_map<uint8, MercenaryStartGear> MercenaryStartGearMap;
-typedef std::unordered_map<int, MercenaryTalking> MercenaryTalkMap;
+typedef std::vector<MercenarySpell> MercenarySpells;
+typedef std::vector<MercenaryStarterGear> MercenaryStartGear;
+typedef std::vector<MercenaryTalking> MercenaryTalk;
 
 class Random
 {
@@ -69,15 +69,21 @@ public:
     * If your Mercenary isn't with you, you can change zones to summon it back automatically
     */
     void OnSummon(Player* player);
+    /*
+    * Clears all containers
+    */
+    void Clear();
+
+    const char* GetAIName() const { return "mercenary_bot"; }
 
     MercenaryMap::const_iterator MercenaryBegin() const { return MercenaryContainer.begin(); }
     MercenaryMap::const_iterator MercenaryEnd() const { return MercenaryContainer.end(); }
-    MercenaryStartGearMap::const_iterator MercenaryStartGearBegin() const { return MercenaryStartGearContainer.begin(); }
-    MercenaryStartGearMap::const_iterator MercenaryStartGearEnd() const { return MercenaryStartGearContainer.end(); }
-    MercenarySpellsMap::const_iterator MercenarySpellsBegin() const { return MercenarySpellsContainer.begin(); }
-    MercenarySpellsMap::const_iterator MercenarySpellsEnd() const { return MercenarySpellsContainer.end(); }
-    MercenaryTalkMap::const_iterator MercenaryTalkBegin() const { return MercenaryTalkContainer.begin(); }
-    MercenaryTalkMap::const_iterator MercenaryTalkEnd() const { return MercenaryTalkContainer.end(); }
+    MercenaryStartGear::const_iterator MercenaryStartGearBegin() const { return MercenaryStartGearContainer.begin(); }
+    MercenaryStartGear::const_iterator MercenaryStartGearEnd() const { return MercenaryStartGearContainer.end(); }
+    MercenarySpells::const_iterator MercenarySpellsBegin() const { return MercenarySpellsContainer.begin(); }
+    MercenarySpells::const_iterator MercenarySpellsEnd() const { return MercenarySpellsContainer.end(); }
+    MercenaryTalk::const_iterator MercenaryTalkBegin() const { return MercenaryTalkContainer.begin(); }
+    MercenaryTalk::const_iterator MercenaryTalkEnd() const { return MercenaryTalkContainer.end(); }
 
     uint32 MaxMercenaryId() const
     {
@@ -119,8 +125,8 @@ public:
     {
         std::vector<MercenaryTalking> tempTalk;
         for (auto& itr = MercenaryTalkBegin(); itr != MercenaryTalkEnd(); ++itr)
-            if (itr->second.type == type && itr->second.role == role)
-                tempTalk.push_back(itr->second);
+            if (itr->type == type && itr->role == role)
+                tempTalk.push_back(*itr);
 
         return tempTalk;
     }
@@ -143,15 +149,14 @@ public:
 
     Random random;
 
-protected:
-    MercenarySpellsMap MercenarySpellsContainer;
-    MercenaryStartGearMap MercenaryStartGearContainer;
-    MercenaryMap MercenaryContainer;
-    MercenaryTalkMap MercenaryTalkContainer;
-
 private:
     MercenaryMgr();
     ~MercenaryMgr();
+
+    MercenarySpells MercenarySpellsContainer;
+    MercenaryStartGear MercenaryStartGearContainer;
+    MercenaryMap MercenaryContainer;
+    MercenaryTalk MercenaryTalkContainer;
 };
 
 #define sMercenaryMgr MercenaryMgr::GetInstance()
