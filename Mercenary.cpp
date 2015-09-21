@@ -461,7 +461,7 @@ bool Mercenary::CanEquipItem(Player* player, Item* item)
         invType == INVTYPE_WEAPON || invType == INVTYPE_WEAPONMAINHAND || invType == INVTYPE_RANGED || (invType == INVTYPE_2HWEAPON && (itemSubClass == ITEM_SUBCLASS_WEAPON_POLEARM ||
         itemSubClass == ITEM_SUBCLASS_WEAPON_SPEAR)));
     bool isCorrectLevel = pet->getLevel() < proto->RequiredLevel;
-    if (proto->RequiredLevel)
+    if (proto->RequiredLevel > 0 && isCorrectLevel)
     {
         ChatHandler(session).PSendSysMessage("Equip item failed! Item level is too high. You can equip this item to a Mercenary when they are level %u.", proto->RequiredLevel);
         return false;
