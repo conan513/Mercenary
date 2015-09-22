@@ -22,6 +22,7 @@ struct MercenarySpell
     uint8 type;
     uint8 role;
     uint32 spellId;
+    bool isDefaultAura;
     bool isActive;
 };
 
@@ -169,7 +170,11 @@ public:
     /*
     * Updates Mercenary's stats
     */
-    bool UpdateStats(Player* player, Stats /* stats */, Pet* pet);
+    bool UpdateStats(Player* player, Stats /*stats*/, Pet* pet);
+    /*
+    * Updates all Mercenary's stats
+    */
+    bool UpdateAllStats(Player* player, Pet* pet);
     /*
     * Returns true if the Mercenary can equip the specified item
     */
@@ -238,6 +243,10 @@ public:
     * Updates the Mercenary's gear in the database
     */
     void UpdateGear();
+    /*
+    * Sets specified stat
+    */
+    void SetStat(Stats stat, uint32 val);
 
     /*
     * Returns InventorySlot Id by supplying a CharacterSlot Id

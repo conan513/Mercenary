@@ -496,6 +496,9 @@ public:
 
             for (auto& it = sMercenaryMgr->MercenarySpellsBegin(); it != sMercenaryMgr->MercenarySpellsEnd(); ++it)
             {
+                if (!it->isActive || it->isDefaultAura)
+                    continue;
+
                 if (mercenary->GetType() == it->type && mercenary->GetRole() == it->role)
                 {
                     if (actions == it->spellId)
@@ -583,7 +586,7 @@ public:
                 Pet* pet = (Pet*)creature;
                 for (auto& it = sMercenaryMgr->MercenarySpellsBegin(); it != sMercenaryMgr->MercenarySpellsEnd(); ++it)
                 {
-                    if (!it->isActive)
+                    if (!it->isActive || it->isDefaultAura)
                         continue;
 
                     if (mercenary->GetType() == it->type && mercenary->GetRole() == it->role)
@@ -625,6 +628,10 @@ public:
             if (!mercenary)
                 return false;
 
+            Pet* pet = player->GetPet();
+            if (!pet)
+                return false;
+
             std::string name = code;
             WorldSession* session = player->GetSession();
             if (name.empty())
@@ -656,15 +663,21 @@ public:
 
             creature->SetName(name);
 
+            if (player->GetGroup())
+                player->SetGroupUpdateFlag(GROUP_UPDATE_FLAG_PET_NAME);
+
 #ifndef MANGOS
             PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_MERCENARY_NAME);
+            CharacterDatabase.EscapeString(name);
             stmt->setString(0, name);
             stmt->setUInt32(1, mercenary->GetId());
             stmt->setUInt32(2, mercenary->GetOwnerGUID());
             CharacterDatabase.Execute(stmt);
 #else
+            CharacterDatabase.escape_string(name);
             CharacterDatabase.PExecute("UPDATE character_pet SET name='%s' WHERE Id='%u' AND owner='%u'", name.c_str(), mercenary->GetId(), player->GetGUIDLow());
 #endif
+            pet->SetUInt32Value(UNIT_FIELD_PET_NAME_TIMESTAMP, uint32(time(NULL)));
         }
 
         player->CLOSE_GOSSIP_MENU();
@@ -764,16 +777,32 @@ public:
             lastMessage = "";
 
 #ifndef MANGOS
-            if (owner = (Player*)me->GetOwner())
+            if (Unit* owner = (Player*)me->GetOwner())
 #else
-            if (owner = (Player*)m_creature->GetOwner())
+            if (Unit* owner = m_creature->GetOwner())
 #endif
             {
                 mercenary = sMercenaryMgr->GetMercenaryByOwner(owner->GetGUIDLow());
-#ifndef MANGOS
-                me->GetMotionMaster()->MoveFollow(owner, PET_FOLLOW_DIST, me->GetFollowAngle());
+                if (mercenary)
+                {
+                    for (auto& it = sMercenaryMgr->MercenarySpellsBegin(); it != sMercenaryMgr->MercenarySpellsEnd(); ++it)
+                    {
+                        if (!it->isActive || !it->isDefaultAura)
+                            continue;
+
+                        if (it->type == mercenary->GetType() && it->role == mercenary->GetRole())
+#ifdef MANGOS
+                            if (!m_creature->HasAura(it->spellId))
+                                m_creature->CastSpell(m_creature, it->spellId, true);
 #else
-                m_creature->GetMotionMaster()->MoveFollow(owner, PET_FOLLOW_DIST, PET_FOLLOW_ANGLE);
+                            if (!me->HasAura(it->spellId))
+                                me->CastSpell(me, it->spellId, true);
+#endif
+                    }
+                }
+#ifndef MANGOS
+                if (Unit* owner = (Player*)me->GetOwner())
+                    me->GetMotionMaster()->MoveFollow(owner, PET_FOLLOW_DIST, me->GetFollowAngle());
 #endif
             }
         }
@@ -784,6 +813,12 @@ public:
         void UpdateAI(const uint32 diff) override
 #endif
         {
+#ifdef MANGOS
+            if (Unit* owner = m_creature->GetOwner())
+                if (!m_creature->getVictim())
+                    if (m_creature->GetCharmInfo()->HasCommandState(COMMAND_FOLLOW) && !m_creature->hasUnitState(UNIT_STAT_FOLLOW))
+                        m_creature->GetMotionMaster()->MoveFollow(owner, PET_FOLLOW_DIST, PET_FOLLOW_ANGLE);
+#endif
             if (mercenary)
             {
                 if (talkTimer <= diff)
@@ -808,21 +843,12 @@ public:
                 }
                 else
                     talkTimer -= diff;
-
-#ifndef MANGOS
-                if (!UpdateVictim())
-                    return;
-#else
-                if (!m_creature->getVictim())
-                    return;
-#endif
             }
             DoMeleeAttackIfReady();
         }
     private:
         Mercenary* mercenary;
         MercenaryTalking mercenaryTalk;
-        Player* owner;
         std::string lastMessage;
     };
 

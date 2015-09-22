@@ -1,3 +1,18 @@
+9/22/2015
+General
+- Added new column to mercenary_spell table `isDefaultAura`, also updated the columns with appropriate default values
+- Added new spells for warrior Mercenary in mercenary_spells table
+- Updated warrior Mercenary sayings in mercenary_talk table with real (non-test) sayings
+- isDefaultAura is used to allow certain default auras on your Mercenary when they first spawn or update. For example, if a warrior Mercenary had Charge spell but needed Battle Stance, you could add Battle Stance in mercenary_spells table with isDefaultAura value as 1
+- You no longer have to relog after changing your Mercenary's name
+- Mercenaries name variable will go through 'escape string' method before saving
+- Mercenaries data will now save
+- Removed PetLevelInfo check
+
+Fixes
+- Fixed Mercenary not returning to you after they leave combat [Mangos Only]
+- Fixed Mercenaries stats not updating after equipping an item on them
+
 9/21/2015
 General
 - Added real MaNGOS (mangostwo) 3.3.5 TrinityCore 3.3.5 diffs of this system

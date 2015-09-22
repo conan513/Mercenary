@@ -78,7 +78,7 @@ void MercenaryMgr::LoadMercenaries()
         } while (result->NextRow());
     }
 
-    result = CharacterDatabase.Query("SELECT type, role, spellId, isActive FROM mercenary_spells");
+    result = CharacterDatabase.Query("SELECT type, role, spellId, isDefaultAura, isActive FROM mercenary_spells");
     if (result)
     {
         do
@@ -89,7 +89,8 @@ void MercenaryMgr::LoadMercenaries()
             spells.type = fields[0].GetUInt8();
             spells.role = fields[1].GetUInt8();
             spells.spellId = fields[2].GetUInt32();
-            spells.isActive = fields[3].GetBool();
+            spells.isDefaultAura = fields[3].GetBool();
+            spells.isActive = fields[4].GetBool();
 
             MercenarySpellsContainer.push_back(spells);
         } while (result->NextRow());
@@ -150,7 +151,25 @@ void MercenaryMgr::OnSave(Player* player, Pet* pet)
         return;
 
     if (!mercenary->IsBeingCreated())
+    {
         mercenary->UpdateGear();
+#ifndef MANGOS
+        SQLTransaction trans = CharacterDatabase.BeginTransaction();
+        PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_MERCENARY);
+        stmt->setUInt32(0, mercenary->GetId());
+        trans->Append(stmt);
+        CharacterDatabase.CommitTransaction(trans);
+#else
+        CharacterDatabase.BeginTransaction();
+        static SqlStatementID delMerc;
+
+        SqlStatement stmt = CharacterDatabase.CreateStatement(delMerc, "DELETE FROM mercenaries WHERE Id=?");
+        stmt.PExecute(mercenary->GetId());
+
+        CharacterDatabase.CommitTransaction();
+#endif
+        mercenary->SaveToDB();
+    }
 }
 
 void MercenaryMgr::OnDelete(uint32 guidLow)

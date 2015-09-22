@@ -35,11 +35,25 @@ CREATE TABLE `mercenary_gear` (
 -- ----------------------------
 DROP TABLE IF EXISTS `mercenary_spells`;
 CREATE TABLE `mercenary_spells` (
-  `type` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `type` tinyint(3) unsigned NOT NULL DEFAULT '1',
   `role` tinyint(3) unsigned NOT NULL DEFAULT '1',
   `spellId` mediumint(8) unsigned NOT NULL DEFAULT '0',
-  `isActive` tinyint(1) NOT NULL DEFAULT '0'
+  `isDefaultAura` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  `isActive` tinyint(1) NOT NULL DEFAULT '1',
+  `comment` varchar(255) CHARACTER SET utf8 NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- ----------------------------
+-- Records of mercenary_spells
+-- ----------------------------
+INSERT INTO `mercenary_spells` VALUES ('1', '1', '78', '0', '1', 'Heroic Strike (Rank 1)');
+INSERT INTO `mercenary_spells` VALUES ('1', '1', '100', '0', '1', 'Charge (Rank 1)');
+INSERT INTO `mercenary_spells` VALUES ('1', '1', '2457', '1', '1', 'Battle Stance Aura');
+INSERT INTO `mercenary_spells` VALUES ('1', '1', '1715', '0', '1', 'Hamstring');
+INSERT INTO `mercenary_spells` VALUES ('1', '1', '772', '0', '1', 'Rend (Rank 1)');
+INSERT INTO `mercenary_spells` VALUES ('1', '1', '6343', '0', '1', 'Thunder Clap (Rank 1)');
+INSERT INTO `mercenary_spells` VALUES ('1', '1', '12294', '0', '1', 'Mortal Strike (Rank 1)');
+INSERT INTO `mercenary_spells` VALUES ('1', '1', '46924', '0', '1', 'Bladestorm');
 
 -- ----------------------------
 -- Table structure for `mercenary_start_gear`
@@ -87,7 +101,6 @@ CREATE TABLE `mercenary_talk` (
 -- ----------------------------
 -- Records of mercenary_talk
 -- ----------------------------
-INSERT INTO `mercenary_talk` VALUES ('1', '1', '100', 'RAWR! Did I scare you?');
-INSERT INTO `mercenary_talk` VALUES ('1', '1', '100', 'I\'m a melee Warrior!');
-INSERT INTO `mercenary_talk` VALUES ('1', '1', '100', 'Do you think Blood Elves are hot?');
-INSERT INTO `mercenary_talk` VALUES ('2', '1', '100', 'The light..');
+INSERT INTO `mercenary_talk` VALUES ('1', '1', '100', 'Wait! Did you hear that? Guess I\'m paranoid.');
+INSERT INTO `mercenary_talk` VALUES ('1', '1', '100', 'Crush! Crush! I will crush you all with my skills!');
+INSERT INTO `mercenary_talk` VALUES ('1', '1', '100', 'I\'d love some fresh meat.');

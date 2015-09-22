@@ -521,6 +521,8 @@ bool Mercenary::CanEquipItem(Player* player, Item* item)
     if (editSlot != SLOT_MAIN_HAND || editSlot != SLOT_OFF_HAND || editSlot != SLOT_RANGED)
         SendMirrorImagePacket(pet);
 
+    UpdateAllStats(player, pet);
+
     return true;
 }
 
@@ -575,38 +577,19 @@ bool Mercenary::InitStats(Player* player, Pet* pet)
 #endif
 
 #ifndef MANGOS
-    PetLevelInfo const* petInfo = sObjectMgr->GetPetLevelInfo(creatureInfo->Entry, mercenaryLevel);
+    CreatureBaseStats const* stats = sObjectMgr->GetCreatureBaseStats(mercenaryLevel, creatureInfo->unit_class);
+    pet->SetCreateHealth(stats->BaseHealth[creatureInfo->expansion]);
+    pet->SetCreateMana(stats->BaseMana);
 #else
-    PetLevelInfo const* petInfo = sObjectMgr.GetPetLevelInfo(creatureInfo->Entry, mercenaryLevel);
-#endif
-    if (petInfo)
-    {
-        pet->SetCreateHealth(petInfo->health);
-        pet->SetCreateMana(petInfo->mana);
-
-        if (petInfo->armor > 0)
-            pet->SetModifierValue(UNIT_MOD_ARMOR, BASE_VALUE, float(petInfo->armor));
-
-        for (uint8 stat = 0; stat < MAX_STATS; ++stat)
-            pet->SetCreateStat(Stats(stat), float(petInfo->stats[stat]));
-    }
-    else
-    {
-#ifndef MANGOS
-        CreatureBaseStats const* stats = sObjectMgr->GetCreatureBaseStats(mercenaryLevel, creatureInfo->unit_class);
-        pet->SetCreateHealth(stats->BaseHealth[creatureInfo->expansion]);
-        pet->SetCreateMana(stats->BaseMana);
-#else
-        pet->SetCreateHealth(uint32(((float(creatureInfo->MaxLevelHealth) / creatureInfo->MaxLevel) / (1 + 2 * creatureInfo->Rank)) * mercenaryLevel));
-        pet->SetCreateMana(uint32(((float(creatureInfo->MaxLevelMana) / creatureInfo->MaxLevel) / (1 + 2 * creatureInfo->Rank)) * mercenaryLevel));
+    pet->SetCreateHealth(uint32(((float(creatureInfo->MaxLevelHealth) / creatureInfo->MaxLevel) / (1 + 2 * creatureInfo->Rank)) * mercenaryLevel));
+    pet->SetCreateMana(uint32(((float(creatureInfo->MaxLevelMana) / creatureInfo->MaxLevel) / (1 + 2 * creatureInfo->Rank)) * mercenaryLevel));
 #endif
 
-        pet->SetCreateStat(STAT_STRENGTH, 22);
-        pet->SetCreateStat(STAT_AGILITY, 22);
-        pet->SetCreateStat(STAT_STAMINA, 25);
-        pet->SetCreateStat(STAT_INTELLECT, 28);
-        pet->SetCreateStat(STAT_SPIRIT, 27);
-    }
+    pet->SetCreateStat(STAT_STRENGTH, 22);
+    pet->SetCreateStat(STAT_AGILITY, 22);
+    pet->SetCreateStat(STAT_STAMINA, 25);
+    pet->SetCreateStat(STAT_INTELLECT, 28);
+    pet->SetCreateStat(STAT_SPIRIT, 27);
 
 #ifndef MANGOS
     pet->SetUInt32Value(UNIT_FIELD_PETNEXTLEVELEXP, uint32(sObjectMgr->GetXPForLevel(mercenaryLevel) * 0.05f));
@@ -687,12 +670,13 @@ bool Mercenary::UpdateStats(Player* player, Stats stat, Pet* pet)
                 uint32 statTypeVal = proto->ItemStat[i].ItemStatValue;
                 if ((stat == STAT_STRENGTH && statType == ITEM_MOD_STRENGTH) || (stat == STAT_AGILITY && statType == ITEM_MOD_AGILITY) ||
                     (stat == STAT_INTELLECT && statType == ITEM_MOD_INTELLECT) || (stat == STAT_STAMINA && statType == ITEM_MOD_STAMINA))
-                    value += (float)statTypeVal;
+                    value += float(statTypeVal);
             }
         }
     }
 
     pet->SetStat(stat, int32(value));
+    SetStat(stat, uint32(value));
     pet->ApplyStatBuffMod(stat, player->GetStat(stat) + ownersBonus, true);
 
     switch (stat)
@@ -705,6 +689,22 @@ bool Mercenary::UpdateStats(Player* player, Stats stat, Pet* pet)
         default:
             break;
     }
+
+    return true;
+}
+
+bool Mercenary::UpdateAllStats(Player* player, Pet* pet)
+{
+    if (!player)
+        return false;
+
+    if (!pet)
+        return false;
+
+    for (int i = STAT_STRENGTH; i < MAX_STATS; ++i)
+        UpdateStats(player, Stats(i), pet);
+    for (int i = POWER_MANA; i < MAX_POWERS; ++i)
+        UpdateMaxPower(Powers(i), pet);
 
     return true;
 }
@@ -906,6 +906,28 @@ void Mercenary::UpdateMaxPower(Powers power, Pet* pet)
     value *= pet->GetModifierValue(unitMod, TOTAL_PCT);
 
     pet->SetMaxPower(power, uint32(value));
+}
+
+void Mercenary::SetStat(Stats stat, uint32 val)
+{
+    switch (stat)
+    {
+        case STAT_STRENGTH:
+            strength = val;
+            break;
+        case STAT_AGILITY:
+            agility = val;
+            break;
+        case STAT_STAMINA:
+            stamina = val;
+            break;
+        case STAT_INTELLECT:
+            intellect = val;
+            break;
+        case STAT_SPIRIT:
+            spirit = val;
+            break;
+    }
 }
 
 uint8 Mercenary::GetInvTypeSlot(uint8 characterSlot) const
