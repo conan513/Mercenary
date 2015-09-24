@@ -118,7 +118,7 @@ void Mercenary::SaveGearToDB()
 #ifndef MANGOS
     SQLTransaction trans = CharacterDatabase.BeginTransaction();
 
-    for (auto& itr = GearContainer.begin(); itr != GearContainer.end(); ++itr)
+    for (auto itr = GearContainer.begin(); itr != GearContainer.end(); ++itr)
     {
         PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_MERCENARY_GEAR);
         stmt->setUInt32(0, GetId());
@@ -130,7 +130,7 @@ void Mercenary::SaveGearToDB()
 #else
     CharacterDatabase.BeginTransaction();
 
-    for (auto& itr = GearContainer.begin(); itr != GearContainer.end(); ++itr)
+    for (auto itr = GearContainer.begin(); itr != GearContainer.end(); ++itr)
         CharacterDatabase.PExecute("INSERT INTO mercenary_gear (guid, itemId, slot) VALUES ('%u', '%u', '%u')", GetId(), itr->itemId, itr->slot);
 
     CharacterDatabase.CommitTransaction();
@@ -170,12 +170,7 @@ bool Mercenary::Create(Player* player)
     if (!player)
         return false;
 
-#ifndef MANGOS
-    uint32 fakeNumber = sMercenaryMgr->MaxMercenaryId() + 1;
-#else
-    uint32 fakeNumber = sMercenaryMgr->MaxMercenaryId() + 1;
-#endif
-    Id = fakeNumber;
+    Id = sMercenaryMgr->MaxMercenaryId() + 1;
     ownerGUID = player->GetGUIDLow();
     role = ROLE_NONE;
     displayId = 1;
@@ -327,7 +322,7 @@ void Mercenary::Initialize(Player* player, Pet* pet, bool create)
 
         pet->SetUInt32Value(UNIT_FIELD_PETNUMBER, GetId());
 
-        for (auto& itr = GearBegin(); itr != GearEnd(); ++itr)
+        for (auto itr = GearBegin(); itr != GearEnd(); ++itr)
         {
             if (itr->slot == SLOT_MAIN_HAND)
                 pet->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID, itr->itemId);
@@ -377,7 +372,7 @@ void Mercenary::Initialize(Player* player, Pet* pet, bool create)
 #endif
         pet->InitPetCreateSpells();
 
-        for (auto& itr = sMercenaryMgr->MercenaryStartGearBegin(); itr != sMercenaryMgr->MercenaryStartGearEnd(); ++itr)
+        for (auto itr = sMercenaryMgr->MercenaryStartGearBegin(); itr != sMercenaryMgr->MercenaryStartGearEnd(); ++itr)
         {
             if (GetType() == itr->mercenaryType && role == itr->mercenaryRole)
             {
@@ -497,7 +492,7 @@ bool Mercenary::CanEquipItem(Player* player, Item* item)
         }
     }
 
-    for (auto& itr = GearContainer.begin(); itr != GearContainer.end(); ++itr)
+    for (auto itr = GearContainer.begin(); itr != GearContainer.end(); ++itr)
     {
         if (itemClass == ITEM_CLASS_ARMOR)
         {
@@ -655,7 +650,7 @@ bool Mercenary::UpdateStats(Player* player, Stats stat, Pet* pet)
 #endif
     }
 
-    for (auto& itr = GearBegin(); itr != GearEnd(); ++itr)
+    for (auto itr = GearBegin(); itr != GearEnd(); ++itr)
     {
 #ifndef MANGOS
         const ItemTemplate* proto = sObjectMgr->GetItemTemplate(itr->itemId);
@@ -721,7 +716,7 @@ void Mercenary::UpdateGear()
 #ifndef MANGOS
     SQLTransaction trans = CharacterDatabase.BeginTransaction();
 
-    for (auto& itr = GearContainer.begin(); itr != GearContainer.end(); ++itr)
+    for (auto itr = GearContainer.begin(); itr != GearContainer.end(); ++itr)
     {
         PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_MERCENARY_GEAR);
         stmt->setUInt32(0, itr->itemId);
@@ -734,7 +729,7 @@ void Mercenary::UpdateGear()
 #else
     CharacterDatabase.BeginTransaction();
 
-    for (auto& itr = GearContainer.begin(); itr != GearContainer.end(); ++itr)
+    for (auto itr = GearContainer.begin(); itr != GearContainer.end(); ++itr)
         CharacterDatabase.PExecute("UPDATE mercenary_gear SET itemId='%u' WHERE guid='%u' AND slot='%u'", itr->itemId, GetId(), itr->slot);
 
     CharacterDatabase.CommitTransaction();
@@ -746,7 +741,7 @@ void Mercenary::RemoveOffHand(Creature* creature)
     if (!creature)
         return;
 
-    for (auto& itr = GearContainer.begin(); itr != GearContainer.end(); ++itr)
+    for (auto itr = GearContainer.begin(); itr != GearContainer.end(); ++itr)
     {
         if (itr->slot == SLOT_OFF_HAND)
             itr->itemId = 0;
@@ -829,7 +824,7 @@ void Mercenary::UpdatePhysicalDamage(WeaponAttackType attackType, Pet* pet)
     float weapon_maxdamage = pet->GetWeaponDamageRange(BASE_ATTACK, MAXDAMAGE);
     float mindamage = ((base_value + weapon_mindamage) * base_pct + total_value) * total_pct;
     float maxdamage = ((base_value + weapon_maxdamage) * base_pct + total_value) * total_pct;
-    for (auto& itr = GearBegin(); itr != GearEnd(); ++itr)
+    for (auto itr = GearBegin(); itr != GearEnd(); ++itr)
     {
         if (itr->slot == SLOT_MAIN_HAND || itr->slot == SLOT_OFF_HAND)
         {
@@ -857,7 +852,7 @@ void Mercenary::UpdateArmor(Pet* pet)
     float bonusArmor = 0.0f;
     UnitMods unitMod = UNIT_MOD_ARMOR;
 
-    for (auto& itr = GearBegin(); itr != GearEnd(); ++itr)
+    for (auto itr = GearBegin(); itr != GearEnd(); ++itr)
     {
 #ifndef MANGOS
         const ItemTemplate* proto = sObjectMgr->GetItemTemplate(itr->itemId);

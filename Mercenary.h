@@ -304,7 +304,7 @@ public:
     */
     uint32 GetItemBySlot(uint8 slot) const
     {
-        for (auto& itr = GearBegin(); itr != GearEnd(); ++itr)
+        for (auto itr = GearBegin(); itr != GearEnd(); ++itr)
         {
             if (slot == itr->slot)
                 return itr->itemId;
@@ -355,7 +355,7 @@ public:
     */
     bool HasWeapon(bool offhand)
     {
-        for (auto& itr = GearBegin(); itr != GearEnd(); ++itr)
+        for (auto itr = GearBegin(); itr != GearEnd(); ++itr)
         {
             if (offhand)
             {
@@ -391,7 +391,5 @@ private:
 
     Gear GearContainer;
 };
-
-typedef std::unordered_map<uint32, Mercenary*> MercenaryMap;
 
 #endif

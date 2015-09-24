@@ -121,7 +121,7 @@ void MercenaryMgr::LoadMercenaries()
 
 void MercenaryMgr::Clear()
 {
-    for (auto& itr = MercenaryContainer.begin(); itr != MercenaryContainer.end(); ++itr)
+    for (auto itr = MercenaryContainer.begin(); itr != MercenaryContainer.end(); ++itr)
         delete itr->second;
 
     MercenaryContainer.clear();

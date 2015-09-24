@@ -8,10 +8,12 @@
 
 #include "Mercenary.h"
 #include <random>
+#include <unordered_map>
 
 typedef std::vector<MercenarySpell> MercenarySpells;
 typedef std::vector<MercenaryStarterGear> MercenaryStartGear;
 typedef std::vector<MercenaryTalking> MercenaryTalk;
+typedef std::unordered_map<uint32, Mercenary*> MercenaryMap;
 
 class Random
 {
@@ -86,13 +88,9 @@ public:
     MercenaryTalk::const_iterator MercenaryTalkBegin() const { return MercenaryTalkContainer.begin(); }
     MercenaryTalk::const_iterator MercenaryTalkEnd() const { return MercenaryTalkContainer.end(); }
 
-    uint32 MaxMercenaryId() const
+    uint32 MaxMercenaryId()
     {
-        if (MercenaryContainer.empty())
-            return 1;
-
-        auto& max_key = std::max_element(MercenaryBegin(), MercenaryEnd(), MercenaryContainer.value_comp());
-        return max_key->first;
+        return MercenaryContainer.size();
     }
 
     /*
@@ -112,7 +110,7 @@ public:
     */
     Mercenary* GetMercenaryByOwner(uint32 ownerGUID)
     {
-        for (auto& itr = MercenaryBegin(); itr != MercenaryEnd(); ++itr)
+        for (auto itr = MercenaryBegin(); itr != MercenaryEnd(); ++itr)
             if (itr->second->GetOwnerGUID() == ownerGUID)
                 return itr->second;
 
@@ -125,7 +123,7 @@ public:
     std::vector<MercenaryTalking> GetTalk(uint8 type, uint8 role)
     {
         std::vector<MercenaryTalking> tempTalk;
-        for (auto& itr = MercenaryTalkBegin(); itr != MercenaryTalkEnd(); ++itr)
+        for (auto itr = MercenaryTalkBegin(); itr != MercenaryTalkEnd(); ++itr)
             if (itr->type == type && itr->role == role)
                 tempTalk.push_back(*itr);
 

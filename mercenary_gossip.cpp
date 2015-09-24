@@ -474,7 +474,7 @@ public:
             if (mercenary->GetEditSlot() > -1)
             {
                 std::vector<uint32> tempVector = mercenary->GetEquippableItems(player, mercenary->GetEditSlot());
-                for (auto& itr = tempVector.begin(); itr != tempVector.end(); ++itr)
+                for (auto itr = tempVector.begin(); itr != tempVector.end(); ++itr)
                 {
                     if (Item* item = player->GetItemByEntry(*itr))
                     {
@@ -485,7 +485,7 @@ public:
                                 return false;
                             else
                             {
-                                ChatHandler(session).PSendSysMessage("Successfully equipped %s to your Mercenary!", mercenary->GetItemLink(item->GetEntry(), session));
+                                ChatHandler(session).PSendSysMessage("Successfully equipped %s to your Mercenary!", mercenary->GetItemLink(item->GetEntry(), session).c_str());
                                 mercenary->SetEditSlot(-1);
                                 return false;
                             }
@@ -494,7 +494,7 @@ public:
                 }
             }
 
-            for (auto& it = sMercenaryMgr->MercenarySpellsBegin(); it != sMercenaryMgr->MercenarySpellsEnd(); ++it)
+            for (auto it = sMercenaryMgr->MercenarySpellsBegin(); it != sMercenaryMgr->MercenarySpellsEnd(); ++it)
             {
                 if (!it->isActive || it->isDefaultAura)
                     continue;
@@ -524,7 +524,7 @@ public:
                 SendEquipGear(player, creature, mercenary);
                 break;
             case 2:
-                for (auto& itr = mercenary->GearBegin(); itr != mercenary->GearEnd(); ++itr)
+                for (auto itr = mercenary->GearBegin(); itr != mercenary->GearEnd(); ++itr)
                 {
 #ifndef MANGOS
                     const ItemTemplate* proto = sObjectMgr->GetItemTemplate(itr->itemId);
@@ -584,7 +584,7 @@ public:
             case 39:
             case 40:
                 Pet* pet = (Pet*)creature;
-                for (auto& it = sMercenaryMgr->MercenarySpellsBegin(); it != sMercenaryMgr->MercenarySpellsEnd(); ++it)
+                for (auto it = sMercenaryMgr->MercenarySpellsBegin(); it != sMercenaryMgr->MercenarySpellsEnd(); ++it)
                 {
                     if (!it->isActive || it->isDefaultAura)
                         continue;
@@ -728,7 +728,7 @@ public:
     {
         mercenary->SetEditSlot(slot);
         std::vector<uint32> tempVector = mercenary->GetEquippableItems(player, slot);
-        for (auto& itr = tempVector.begin(); itr != tempVector.end(); ++itr)
+        for (auto itr = tempVector.begin(); itr != tempVector.end(); ++itr)
         {
             if (Item* item = player->GetItemByEntry(*itr))
             {
@@ -785,7 +785,7 @@ public:
                 mercenary = sMercenaryMgr->GetMercenaryByOwner(owner->GetGUIDLow());
                 if (mercenary)
                 {
-                    for (auto& it = sMercenaryMgr->MercenarySpellsBegin(); it != sMercenaryMgr->MercenarySpellsEnd(); ++it)
+                    for (auto it = sMercenaryMgr->MercenarySpellsBegin(); it != sMercenaryMgr->MercenarySpellsEnd(); ++it)
                     {
                         if (!it->isActive || !it->isDefaultAura)
                             continue;
@@ -823,7 +823,7 @@ public:
             {
                 if (talkTimer <= diff)
                 {
-                    auto& tempVector = sMercenaryMgr->GetTalk(mercenary->GetType(), mercenary->GetRole());
+                    std::vector<MercenaryTalking> tempVector = sMercenaryMgr->GetTalk(mercenary->GetType(), mercenary->GetRole());
                     if (tempVector.size() > 0)
                     {
                         int rnd = sMercenaryMgr->random.Next(0, tempVector.size() - 1);
