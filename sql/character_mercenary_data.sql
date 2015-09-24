@@ -62,6 +62,7 @@ DROP TABLE IF EXISTS `mercenary_start_gear`;
 CREATE TABLE `mercenary_start_gear` (
   `mercenaryType` tinyint(3) unsigned NOT NULL DEFAULT '1',
   `mercenaryRole` tinyint(3) unsigned NOT NULL DEFAULT '1',
+  `entry` mediumint(8) unsigned NOT NULL DEFAULT '70000',
   `headEntry` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `shoulderEntry` mediumint(8) NOT NULL DEFAULT '0',
   `chestEntry` mediumint(8) unsigned NOT NULL DEFAULT '0',
@@ -76,16 +77,17 @@ CREATE TABLE `mercenary_start_gear` (
 -- ----------------------------
 -- Records of mercenary_start_gear
 -- ----------------------------
-INSERT INTO `mercenary_start_gear` VALUES ('1', '1', '40816', '40856', '40778', '40836', '40797', '37367', '0', '0', '0');
-INSERT INTO `mercenary_start_gear` VALUES ('6', '2', '41943', '0', '0', '0', '0', '0', '0', '0', '0');
-INSERT INTO `mercenary_start_gear` VALUES ('2', '1', '40780', '0', '0', '0', '0', '0', '0', '0', '0');
-INSERT INTO `mercenary_start_gear` VALUES ('3', '2', '0', '0', '0', '0', '0', '0', '0', '0', '0');
-INSERT INTO `mercenary_start_gear` VALUES ('4', '1', '0', '0', '40779', '0', '0', '0', '0', '0', '0');
-INSERT INTO `mercenary_start_gear` VALUES ('5', '2', '0', '42008', '0', '0', '0', '0', '0', '0', '0');
-INSERT INTO `mercenary_start_gear` VALUES ('7', '3', '41269', '41271', '41272', '41270', '41268', '0', '0', '0', '0');
-INSERT INTO `mercenary_start_gear` VALUES ('8', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0');
-INSERT INTO `mercenary_start_gear` VALUES ('9', '1', '41644', '41646', '41647', '41645', '41643', '0', '0', '0', '0');
-INSERT INTO `mercenary_start_gear` VALUES ('10', '2', '41016', '41041', '40987', '41030', '41004', '35650', '0', '0', '0');
+INSERT INTO `mercenary_start_gear` VALUES ('1', '1', '70000', '40816', '40856', '40778', '40836', '40797', '37367', '0', '0', '0');
+INSERT INTO `mercenary_start_gear` VALUES ('6', '2', '70000', '41943', '0', '0', '0', '0', '0', '0', '0', '0');
+INSERT INTO `mercenary_start_gear` VALUES ('2', '1', '70000', '40780', '0', '0', '0', '0', '0', '0', '0', '0');
+INSERT INTO `mercenary_start_gear` VALUES ('3', '2', '70000', '0', '0', '0', '0', '0', '0', '0', '0', '0');
+INSERT INTO `mercenary_start_gear` VALUES ('4', '1', '70000', '0', '0', '40779', '0', '0', '0', '0', '0', '0');
+INSERT INTO `mercenary_start_gear` VALUES ('5', '2', '70000', '0', '42008', '0', '0', '0', '0', '0', '0', '0');
+INSERT INTO `mercenary_start_gear` VALUES ('7', '3', '70000', '41269', '41271', '41272', '41270', '41268', '0', '0', '0', '0');
+INSERT INTO `mercenary_start_gear` VALUES ('8', '0', '70000', '0', '0', '0', '0', '0', '0', '0', '0', '0');
+INSERT INTO `mercenary_start_gear` VALUES ('9', '1', '70000', '41644', '41646', '41647', '41645', '41643', '0', '0', '0', '0');
+INSERT INTO `mercenary_start_gear` VALUES ('10', '2', '70000', '41016', '41041', '40987', '41030', '41004', '35650', '0', '0', '0');
+INSERT INTO `mercenary_start_gear` VALUES ('1', '1', '70001', '40816', '40856', '40778', '40836', '40797', '37367', '0', '0', '0');
 
 -- ----------------------------
 -- Table structure for `mercenary_talk`
@@ -104,3 +106,20 @@ CREATE TABLE `mercenary_talk` (
 INSERT INTO `mercenary_talk` VALUES ('1', '1', '100', 'Wait! Did you hear that? Guess I\'m paranoid.');
 INSERT INTO `mercenary_talk` VALUES ('1', '1', '100', 'Crush! Crush! I will crush you all with my skills!');
 INSERT INTO `mercenary_talk` VALUES ('1', '1', '100', 'I\'d love some fresh meat.');
+
+-- ----------------------------
+-- Table structure for `mercenary_world`
+-- ----------------------------
+DROP TABLE IF EXISTS `mercenary_world`;
+CREATE TABLE `mercenary_world` (
+  `entry` mediumint(8) unsigned NOT NULL DEFAULT '0',
+  `modelId` mediumint(8) unsigned NOT NULL DEFAULT '49',
+  `race` tinyint(3) unsigned NOT NULL DEFAULT '1',
+  `gender` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`entry`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- ----------------------------
+-- Records of mercenary_world
+-- ----------------------------
+INSERT INTO `mercenary_world` VALUES ('70001', '49', '1', '0');

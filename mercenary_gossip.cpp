@@ -434,8 +434,8 @@ public:
             SendToHello(player, creature);
             return;
         }
-        player->CLOSE_GOSSIP_MENU();
 
+        player->CLOSE_GOSSIP_MENU();
         return;
     }
 };
@@ -862,6 +862,80 @@ public:
     }
 };
 
+class mercenary_world_gossip : public CreatureScript
+{
+public:
+    mercenary_world_gossip() : CreatureScript("mercenary_world_gossip") { }
+
+    bool OnGossipHello(Player* player, Creature* creature) override
+    {
+        player->PlayerTalkClass->ClearMenus();
+        if (player->IsInCombat())
+        {
+            player->GetSession()->SendNotification("You are in combat.");
+            return false;
+        }
+
+        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "I would like to hire you.", 0, 1);
+        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Nevermind.", 0, 2);
+#ifndef MANGOS
+        player->SEND_GOSSIP_MENU(1, creature->GetGUID());
+#else
+        player->SEND_GOSSIP_MENU(1, creature->GetObjectGuid());
+#endif
+        return true;
+    }
+
+    bool OnGossipSelect(Player* player, Creature* creature, uint32 /*sender*/, uint32 actions) override
+    {
+        player->PlayerTalkClass->ClearMenus();
+        Mercenary* mercenary = sMercenaryMgr->GetMercenaryByOwner(player->GetGUIDLow());
+        if (mercenary)
+        {
+#ifdef MANGOS
+            creature->MonsterSay("I thought you wanted me as your Mercenary? Well, why do you have a Mercenary already!?..", LANG_UNIVERSAL);
+#else
+            creature->Say("I thought you wanted me as your Mercenary? Well, why do you have a Mercenary already!?..", LANG_UNIVERSAL);
+#endif
+            player->CLOSE_GOSSIP_MENU();
+            return false;
+        }
+
+        MercenaryStarterGear* gear = sMercenaryMgr->GetStarterGearByEntry(creature->GetEntry());
+        if (!gear)
+        {
+            player->CLOSE_GOSSIP_MENU();
+            return false;
+        }
+
+        MercenaryWorld* worldData = sMercenaryMgr->GetMercenaryWorldData(creature->GetEntry());
+        if (!worldData)
+        {
+            player->CLOSE_GOSSIP_MENU();
+            return false;
+        }
+
+        if (actions == 1)
+        {
+            Mercenary* mercenary = new Mercenary();
+            CreateMercenary(player, creature, mercenary, worldData->modelId, worldData->race, worldData->gender, gear->mercenaryRole, gear->mercenaryType);
+        }
+
+        player->CLOSE_GOSSIP_MENU();
+        return true;
+    }
+
+    void CreateMercenary(Player* player, Creature* creature, Mercenary* mercenary, uint32 model, uint8 race, uint8 gender, uint8 role, uint8 type)
+    {
+        if (!mercenary->Create(player, model, race, gender, type, role, creature->GetName()))
+        {
+            player->GetSession()->SendNotification("Could not hire this Mercenary!");
+            player->CLOSE_GOSSIP_MENU();
+            return;
+        }
+    }
+};
+
 void MercenarySetup()
 {
 #ifndef MANGOS
@@ -869,11 +943,14 @@ void MercenarySetup()
     new mercenary_bot;
     new mercenary_world_load;
     new mercenary_player;
+    new mercenary_world_gossip;
 #else
     Script* s;
     s = new mercenary_npc_gossip;
     s->RegisterSelf();
     s = new mercenary_bot;
+    s->RegisterSelf();
+    s = new mercenary_world_gossip;
     s->RegisterSelf();
 #endif
 }

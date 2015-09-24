@@ -1,3 +1,14 @@
+9/24/2015
+General
+- `mercenary_starter_gear` column structure has changed
+- New table `mercenary_world`
+- New `creature_template` and `script_binding` (Mangos Only) table data
+- You can now spawn creatures as Mercenaries. `mercenary_world` table holds Mercenary creation data. You can add gear for the Mercenary in `mercenary_starter_gear` using its entryId and that gear will be used by the Mercenary once hired
+
+Fixes
+- Fixed Mercenary role on creation not being correct sometimes or not at all
+- Fixed ownerGUID being 0 if it wasn't set prior to the real `Create` method
+
 9/22/2015
 General
 - Added new column to mercenary_spell table `isDefaultAura`, also updated the columns with appropriate default values

@@ -190,7 +190,7 @@ bool Mercenary::Create(Player* player)
     return true;
 }
 
-bool Mercenary::Create(Player* player, uint32 model, uint8 r, uint8 g, uint8 mercType, uint8 role)
+bool Mercenary::Create(Player* player, uint32 model, uint8 r, uint8 g, uint8 mercType, uint8 mercRole, const std::string& name)
 {
     if (!player)
         return false;
@@ -250,11 +250,13 @@ bool Mercenary::Create(Player* player, uint32 model, uint8 r, uint8 g, uint8 mer
     }
 
     Id = petNumber;
-    role = role;
+    ownerGUID = player->GetGUIDLow();
+    role = mercRole;
     displayId = model;
     race = r;
     gender = g;
     type = mercType;
+    pet->SetName(name);
 
     Initialize(player, pet, true);
 
@@ -374,7 +376,7 @@ void Mercenary::Initialize(Player* player, Pet* pet, bool create)
 
         for (auto itr = sMercenaryMgr->MercenaryStartGearBegin(); itr != sMercenaryMgr->MercenaryStartGearEnd(); ++itr)
         {
-            if (GetType() == itr->mercenaryType && role == itr->mercenaryRole)
+            if (GetType() == itr->mercenaryType && role == itr->mercenaryRole && itr->creature_entry == pet->GetEntry())
             {
                 GearContainer.push_back(MercenaryGear(itr->headEntry, SLOT_HEAD));
                 GearContainer.push_back(MercenaryGear(itr->shoulderEntry, SLOT_SHOULDERS));

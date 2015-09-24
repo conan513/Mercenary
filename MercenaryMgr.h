@@ -14,6 +14,7 @@ typedef std::vector<MercenarySpell> MercenarySpells;
 typedef std::vector<MercenaryStarterGear> MercenaryStartGear;
 typedef std::vector<MercenaryTalking> MercenaryTalk;
 typedef std::unordered_map<uint32, Mercenary*> MercenaryMap;
+typedef std::unordered_map<uint32, MercenaryWorld> MercenaryWorldMap;
 
 class Random
 {
@@ -88,6 +89,10 @@ public:
     MercenaryTalk::const_iterator MercenaryTalkBegin() const { return MercenaryTalkContainer.begin(); }
     MercenaryTalk::const_iterator MercenaryTalkEnd() const { return MercenaryTalkContainer.end(); }
 
+    /*
+    * Returns MercenaryContainer size
+    * Used for `fakeEntry` when creating a Mercenary
+    */
     uint32 MaxMercenaryId()
     {
         return MercenaryContainer.size();
@@ -131,6 +136,21 @@ public:
     }
 
     /*
+    * Returns Mercenary world data
+    * `MercenaryWorld` data is for Mercenaries spawned in the world
+    * On creation, modelId, race and gender will be used, so the data must be
+    *     actual race, modelId and gender values
+    */
+    MercenaryWorld* GetMercenaryWorldData(uint32 entry)
+    {
+        auto it = MercenaryWorldContainer.find(entry);
+        if (it != MercenaryWorldContainer.end())
+            return &it->second;
+
+        return nullptr;
+    }
+
+    /*
     * Returns item's displayId by itemEntry
     */
     uint32 GetItemDisplayId(uint32 itemEntry)
@@ -143,7 +163,19 @@ public:
         if (proto)
             return proto->DisplayInfoID;
 
-        return 0;
+        return NULL;
+    }
+
+    /*
+    * Returns Starter Gear for the specified creature entry
+    */
+    MercenaryStarterGear* GetStarterGearByEntry(uint32 entry)
+    {
+        for (MercenaryStartGear::iterator it = MercenaryStartGearContainer.begin(); it != MercenaryStartGearContainer.end(); ++it)
+            if (it->creature_entry == entry)
+                return &(*it);
+
+        return nullptr;
     }
 
     Random random;
@@ -156,6 +188,7 @@ private:
     MercenaryStartGear MercenaryStartGearContainer;
     MercenaryMap MercenaryContainer;
     MercenaryTalk MercenaryTalkContainer;
+    MercenaryWorldMap MercenaryWorldContainer;
 };
 
 #define sMercenaryMgr MercenaryMgr::GetInstance()

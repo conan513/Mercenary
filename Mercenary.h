@@ -39,6 +39,7 @@ struct MercenaryStarterGear
 {
     uint8 mercenaryType;
     uint8 mercenaryRole;
+    uint32 creature_entry;
     uint32 headEntry;
     uint32 shoulderEntry;
     uint32 chestEntry;
@@ -57,6 +58,13 @@ struct MercenaryTalking
     // Leave at 100 if you want to use it for random talking
     uint8 healthPercentageToTalk;
     std::string text;
+};
+
+struct MercenaryWorld
+{
+    uint32 modelId;
+    uint8 race;
+    uint8 gender;
 };
 
 struct RandomMercenary
@@ -153,7 +161,7 @@ public:
     /*
     * Creates and spawns the Mercenary
     */
-    bool Create(Player* player, uint32 model, uint8 race, uint8 gender, uint8 mercenaryType, uint8 role);
+    bool Create(Player* player, uint32 model, uint8 race, uint8 gender, uint8 mercenaryType, uint8 role, const std::string& name = "");
     /*
     * Mercenary will learn the given spellId
     * Maximum spells Mercenary can have is 4

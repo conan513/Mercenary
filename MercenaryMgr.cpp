@@ -32,10 +32,10 @@ void MercenaryMgr::LoadMercenaries()
 #endif
 
 #ifndef MANGOS
-    QueryResult result = CharacterDatabase.Query("SELECT mercenaryType, mercenaryRole, headEntry, shoulderEntry, chestEntry, legEntry, handEntry, feetEntry, weaponEntry, "
+    QueryResult result = CharacterDatabase.Query("SELECT mercenaryType, mercenaryRole, entry, headEntry, shoulderEntry, chestEntry, legEntry, handEntry, feetEntry, weaponEntry, "
         "offHandEntry, rangedEntry FROM mercenary_start_gear");
 #else
-    QueryResult* result = CharacterDatabase.Query("SELECT mercenaryType, mercenaryRole, headEntry, shoulderEntry, chestEntry, legEntry, handEntry, feetEntry, weaponEntry, "
+    QueryResult* result = CharacterDatabase.Query("SELECT mercenaryType, mercenaryRole, entry, headEntry, shoulderEntry, chestEntry, legEntry, handEntry, feetEntry, weaponEntry, "
         "offHandEntry, rangedEntry FROM mercenary_start_gear");
 #endif
     if (result)
@@ -47,15 +47,16 @@ void MercenaryMgr::LoadMercenaries()
             MercenaryStarterGear starterGear;
             starterGear.mercenaryType = fields[0].GetUInt8();
             starterGear.mercenaryRole = fields[1].GetUInt8();
-            starterGear.headEntry = fields[2].GetUInt32();
-            starterGear.shoulderEntry = fields[3].GetUInt32();
-            starterGear.chestEntry = fields[4].GetUInt32();
-            starterGear.legEntry = fields[5].GetUInt32();
-            starterGear.handEntry = fields[6].GetUInt32();
-            starterGear.feetEntry = fields[7].GetUInt32();
-            starterGear.weaponEntry = fields[8].GetUInt32();
-            starterGear.offHandEntry = fields[9].GetUInt32();
-            starterGear.rangedEntry = fields[10].GetUInt32();
+            starterGear.creature_entry = fields[2].GetUInt32();
+            starterGear.headEntry = fields[3].GetUInt32();
+            starterGear.shoulderEntry = fields[4].GetUInt32();
+            starterGear.chestEntry = fields[5].GetUInt32();
+            starterGear.legEntry = fields[6].GetUInt32();
+            starterGear.handEntry = fields[7].GetUInt32();
+            starterGear.feetEntry = fields[8].GetUInt32();
+            starterGear.weaponEntry = fields[9].GetUInt32();
+            starterGear.offHandEntry = fields[10].GetUInt32();
+            starterGear.rangedEntry = fields[11].GetUInt32();
 
             MercenaryStartGearContainer.push_back(starterGear);
         } while (result->NextRow());
@@ -96,6 +97,22 @@ void MercenaryMgr::LoadMercenaries()
         } while (result->NextRow());
     }
 
+    result = CharacterDatabase.Query("SELECT entry, modelId, race, gender FROM mercenary_world");
+    if (result)
+    {
+        do
+        {
+            Field* fields = result->Fetch();
+
+            MercenaryWorld world;
+            world.modelId = fields[1].GetUInt32();
+            world.race = fields[2].GetUInt8();
+            world.gender = fields[3].GetUInt8();
+
+            MercenaryWorldContainer[fields[0].GetUInt32()] = world;
+        } while (result->NextRow());
+    }
+
     result = CharacterDatabase.Query("SELECT Id, ownerGUID, role, displayId, race, gender, type, strength, agility, stamina, intellect, spirit, summoned FROM mercenaries");
     if (result)
     {
@@ -123,8 +140,11 @@ void MercenaryMgr::Clear()
 {
     for (auto itr = MercenaryContainer.begin(); itr != MercenaryContainer.end(); ++itr)
         delete itr->second;
+    for (auto itr = MercenaryWorldContainer.begin(); itr != MercenaryWorldContainer.end(); ++itr)
+        delete &itr->second;
 
     MercenaryContainer.clear();
+    MercenaryWorldContainer.clear();
     MercenarySpellsContainer.clear();
     MercenaryStartGearContainer.clear();
     MercenaryTalkContainer.clear();
