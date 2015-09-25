@@ -256,7 +256,8 @@ bool Mercenary::Create(Player* player, uint32 model, uint8 r, uint8 g, uint8 mer
     race = r;
     gender = g;
     type = mercType;
-    pet->SetName(name);
+    if (!name.empty())
+        pet->SetName(name);
 
     Initialize(player, pet, true);
 
