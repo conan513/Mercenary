@@ -21,6 +21,7 @@ This system requires core changes. Below you will find diffs for each emulator s
 ##Links
 * [Mercenary Source] (https://github.com/EmuDevs/Mercenary)
 * [Changelog] (https://github.com/EmuDevs/Mercenary/blob/master/changelog.txt)
+* [Wiki] (https://github.com/EmuDevs/Mercenary/wiki)
 * [MaNGOS](http://getmangos.eu/)
 * [TrinityCore](http://www.trinitycore.org/)
 
