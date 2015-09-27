@@ -206,3 +206,121 @@ void MercenaryMgr::OnSummon(Player* player)
     if (Mercenary* mercenary = GetMercenaryByOwner(player->GetGUIDLow()))
         mercenary->Summon(player);
 }
+
+std::string MercenaryMgr::GetSpellIcon(uint32 entry, WorldSession* session) const
+{
+    std::ostringstream ss;
+    ss << "|T";
+#ifndef MANGOS
+    const SpellInfo* temp = sSpellMgr->GetSpellInfo(entry);
+#else
+    const SpellEntry* temp = sSpellStore.LookupEntry(entry);
+#endif
+    const SpellIconEntry* icon = nullptr;
+    std::string name = "";
+    if (temp)
+    {
+        name = temp->SpellName[session->GetSessionDbcLocale()];
+        icon = sSpellIconStore.LookupEntry(temp->SpellIconID);
+        if (icon)
+            ss << icon->spellIcon;
+    }
+    if (!icon)
+        ss << "Interface/ICONS/InventoryItems/WoWUnknownItem01";
+    ss << ":" << 32 << ":" << 32 << ":" << -18 << ":" << 0 << "|t" << name;
+    return ss.str();
+}
+
+std::string MercenaryMgr::GetItemIcon(uint32 entry) const
+{
+    std::ostringstream ss;
+    ss << "|TInterface";
+#ifndef MANGOS
+    const ItemTemplate* temp = sObjectMgr->GetItemTemplate(entry);
+#else
+    const ItemPrototype* temp = sObjectMgr.GetItemPrototype(entry);
+#endif
+    const ItemDisplayInfoEntry* dispInfo = nullptr;
+    if (temp)
+    {
+        dispInfo = sItemDisplayInfoStore.LookupEntry(temp->DisplayInfoID);
+        if (dispInfo)
+            ss << "/ICONS/" << dispInfo->inventoryIcon;
+    }
+    if (!dispInfo)
+        ss << "/InventoryItems/WoWUnknownItem01";
+    ss << ":" << 32 << ":" << 32 << ":" << -18 << ":" << 0 << "|t";
+    return ss.str();
+}
+
+std::string MercenaryMgr::GetSlotIcon(uint8 slot) const
+{
+    std::ostringstream ss;
+    ss << "|TInterface/PaperDoll/";
+	switch (slot)
+    {
+        case SLOT_HEAD: ss << "UI-PaperDoll-Slot-Head"; break;
+        case SLOT_SHOULDERS: ss << "UI-PaperDoll-Slot-Shoulder"; break;
+        case SLOT_SHIRT: ss << "UI-PaperDoll-Slot-Shirt"; break;
+        case SLOT_CHEST: ss << "UI-PaperDoll-Slot-Chest"; break;
+        case SLOT_WAIST: ss << "UI-PaperDoll-Slot-Waist"; break;
+        case SLOT_LEGS: ss << "UI-PaperDoll-Slot-Legs"; break;
+        case SLOT_FEET: ss << "UI-PaperDoll-Slot-Feet"; break;
+        case SLOT_WRISTS: ss << "UI-PaperDoll-Slot-Wrists"; break;
+        case SLOT_HANDS: ss << "UI-PaperDoll-Slot-Hands"; break;
+        case SLOT_BACK: ss << "UI-PaperDoll-Slot-Chest"; break;
+        case SLOT_MAIN_HAND: ss << "UI-PaperDoll-Slot-MainHand"; break;
+        case SLOT_OFF_HAND: ss << "UI-PaperDoll-Slot-SecondaryHand"; break;
+        case SLOT_RANGED: ss << "UI-PaperDoll-Slot-Ranged"; break;
+        case SLOT_TABARD: ss << "UI-PaperDoll-Slot-Tabard"; break;
+        default: ss << "UI-Backpack-EmptySlot";
+    }
+    ss << ":" << 32 << ":" << 32 << ":" << -18 << ":" << 0 << "|t";
+    return ss.str();
+}
+
+const char* MercenaryMgr::GetSlotName(uint8 slot) const
+{
+    switch (slot)
+    {
+        case SLOT_HEAD: return  "Head";
+        case SLOT_SHOULDERS: return  "Shoulders";
+        case SLOT_SHIRT: return  "Shirt";
+        case SLOT_CHEST: return  "Chest";
+        case SLOT_WAIST: return  "Waist";
+        case SLOT_LEGS: return  "Legs";
+        case SLOT_FEET: return  "Feet";
+        case SLOT_WRISTS: return  "Wrists";
+        case SLOT_HANDS: return  "Hands";
+        case SLOT_BACK: return  "Back";
+        case SLOT_MAIN_HAND: return  "Main hand";
+        case SLOT_OFF_HAND: return  "Off hand";
+        case SLOT_RANGED: return  "Ranged";
+        case SLOT_TABARD: return  "Tabard";
+        default: return "";
+    }
+}
+
+std::string MercenaryMgr::GetItemLink(uint32 entry, WorldSession* session) const
+{
+#ifndef MANGOS
+    const ItemTemplate* temp = sObjectMgr->GetItemTemplate(entry);
+#else
+    const ItemPrototype* temp = sObjectMgr.GetItemPrototype(entry);
+#endif
+    int loc_idx = session->GetSessionDbLocaleIndex();
+    std::string name = temp->Name1;
+#ifndef MANGOS
+    if (ItemLocale const* il = sObjectMgr->GetItemLocale(entry))
+        ObjectMgr::GetLocaleString(il->Name, loc_idx, name);
+#else
+    if (ItemLocale const* il = sObjectMgr.GetItemLocale(entry))
+        ObjectMgr::GetLocaleString(il->Name, loc_idx, name);
+#endif
+
+    std::ostringstream oss;
+    oss << "|c" << std::hex << ItemQualityColors[temp->Quality] << std::dec <<
+        "|Hitem:" << entry << ":0:0:0:0:0:0:0:0:0|h[" << name << "]|h|r";
+
+    return oss.str();
+}

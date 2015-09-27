@@ -77,6 +77,30 @@ public:
     * Clears all containers
     */
     void Clear();
+    /*
+    * Returns the item's icon
+    * Thanks Rochet2 for the function
+    */
+    std::string GetItemIcon(uint32 entry) const;
+    /*
+    * Returns the slot icon, empty bag if no icon is found for a slot
+    * Thanks Rochet2 for the function
+    */
+    std::string GetSlotIcon(uint8 slot) const;
+    /*
+    * Returns item link
+    * Thanks Rochet2 for the function
+    */
+    std::string GetItemLink(uint32 entry, WorldSession* session) const;
+    /*
+    * Returns slot name
+    * Thanks Rochet2 for the function
+    */
+    const char* GetSlotName(uint8 slot) const;
+    /*
+    * Returns spell icon & spell name
+    */
+    std::string GetSpellIcon(uint32 entry, WorldSession* session) const;
 
     const char* GetAIName() const { return "mercenary_bot"; }
 

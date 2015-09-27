@@ -486,7 +486,7 @@ public:
                                 return false;
                             else
                             {
-                                ChatHandler(session).PSendSysMessage("Successfully equipped %s to your Mercenary!", mercenary->GetItemLink(item->GetEntry(), session).c_str());
+                                ChatHandler(session).PSendSysMessage("Successfully equipped %s to your Mercenary!", sMercenaryMgr->GetItemLink(item->GetEntry(), session).c_str());
                                 mercenary->SetEditSlot(-1);
                                 return false;
                             }
@@ -533,7 +533,7 @@ public:
                     const ItemPrototype* proto = sObjectMgr.GetItemPrototype(itr->itemId);
 #endif
                     if (proto)
-                        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, mercenary->GetItemIcon(itr->itemId) + mercenary->GetItemLink(itr->itemId, session), 0, 36);
+                        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, sMercenaryMgr->GetItemIcon(itr->itemId) + sMercenaryMgr->GetItemLink(itr->itemId, session), 0, 36);
                 }
                 player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "<- Back <-", 0, 36);
 #ifndef MANGOS
@@ -593,12 +593,12 @@ public:
                     if (mercenary->GetType() == it->type && mercenary->GetRole() == it->role)
                     {
                         if (actions == 39)
-                            player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, mercenary->GetSpellIcon(it->spellId, player->GetSession()), 0, it->spellId);
+                            player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, sMercenaryMgr->GetSpellIcon(it->spellId, player->GetSession()), 0, it->spellId);
                         else
                         {
                             if (pet->HasSpell(it->spellId))
                             {
-                                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, mercenary->GetSpellIcon(it->spellId, player->GetSession()) + " [Unlearn]", 0, it->spellId);
+                                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, sMercenaryMgr->GetSpellIcon(it->spellId, player->GetSession()) + " [Unlearn]", 0, it->spellId);
                                 removingSpell = true;
                             }
                         }
@@ -708,15 +708,15 @@ public:
     {
         if (mercenary->GetEditSlot() != -1)
             mercenary->SetEditSlot(-1);
-        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, mercenary->GetSlotIcon(SLOT_HEAD) + mercenary->GetSlotName(SLOT_HEAD), 0, 14);
-        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, mercenary->GetSlotIcon(SLOT_SHOULDERS) + mercenary->GetSlotName(SLOT_SHOULDERS), 0, 13);
-        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, mercenary->GetSlotIcon(SLOT_HANDS) + mercenary->GetSlotName(SLOT_HANDS), 0, 12);
-        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, mercenary->GetSlotIcon(SLOT_FEET) + mercenary->GetSlotName(SLOT_FEET), 0, 11);
-        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, mercenary->GetSlotIcon(SLOT_LEGS) + mercenary->GetSlotName(SLOT_LEGS), 0, 10);
-        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, mercenary->GetSlotIcon(SLOT_CHEST) + mercenary->GetSlotName(SLOT_CHEST), 0, 9);
-        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, mercenary->GetSlotIcon(SLOT_MAIN_HAND) + mercenary->GetSlotName(SLOT_MAIN_HAND), 0, 8);
-        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, mercenary->GetSlotIcon(SLOT_OFF_HAND) + mercenary->GetSlotName(SLOT_OFF_HAND), 0, 7);
-        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, mercenary->GetSlotIcon(SLOT_RANGED) + mercenary->GetSlotName(SLOT_RANGED), 0, 6);
+        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, sMercenaryMgr->GetSlotIcon(SLOT_HEAD) + sMercenaryMgr->GetSlotName(SLOT_HEAD), 0, 14);
+        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, sMercenaryMgr->GetSlotIcon(SLOT_SHOULDERS) + sMercenaryMgr->GetSlotName(SLOT_SHOULDERS), 0, 13);
+        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, sMercenaryMgr->GetSlotIcon(SLOT_HANDS) + sMercenaryMgr->GetSlotName(SLOT_HANDS), 0, 12);
+        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, sMercenaryMgr->GetSlotIcon(SLOT_FEET) + sMercenaryMgr->GetSlotName(SLOT_FEET), 0, 11);
+        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, sMercenaryMgr->GetSlotIcon(SLOT_LEGS) + sMercenaryMgr->GetSlotName(SLOT_LEGS), 0, 10);
+        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, sMercenaryMgr->GetSlotIcon(SLOT_CHEST) + sMercenaryMgr->GetSlotName(SLOT_CHEST), 0, 9);
+        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, sMercenaryMgr->GetSlotIcon(SLOT_MAIN_HAND) + sMercenaryMgr->GetSlotName(SLOT_MAIN_HAND), 0, 8);
+        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, sMercenaryMgr->GetSlotIcon(SLOT_OFF_HAND) + sMercenaryMgr->GetSlotName(SLOT_OFF_HAND), 0, 7);
+        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, sMercenaryMgr->GetSlotIcon(SLOT_RANGED) + sMercenaryMgr->GetSlotName(SLOT_RANGED), 0, 6);
         player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Nevermind", 0, 36);
 #ifndef MANGOS
         player->SEND_GOSSIP_MENU(1, creature->GetGUID());
@@ -735,11 +735,11 @@ public:
             {
                 std::ostringstream ss;
                 if (mercenary->GetItemBySlot(slot) != item->GetEntry())
-                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, mercenary->GetItemIcon(item->GetEntry()) + mercenary->GetItemLink(item->GetEntry(), player->GetSession()), 0, item->GetEntry());
+                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, sMercenaryMgr->GetItemIcon(item->GetEntry()) + sMercenaryMgr->GetItemLink(item->GetEntry(), player->GetSession()), 0, item->GetEntry());
                 else
                 {
-                    ss << mercenary->GetItemLink(item->GetEntry(), player->GetSession()) << " [|cff990000Already Equipped|r]";
-                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, mercenary->GetItemIcon(item->GetEntry()) + ss.str().c_str(), 0, 36);
+                    ss << sMercenaryMgr->GetItemLink(item->GetEntry(), player->GetSession()) << " [|cff990000Already Equipped|r]";
+                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, sMercenaryMgr->GetItemIcon(item->GetEntry()) + ss.str().c_str(), 0, 36);
                 }
             }
         }

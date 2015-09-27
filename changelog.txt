@@ -1,3 +1,9 @@
+9/26/2015
+General
+- Equipping an item on your Mercenary will now destroy the item in your inventory. If the Mercenary had an item already equipped, that item will still be replaced but will be given back
+- Moved certain methods to MercenaryMgr since they didn't need to be in Mercenary class
+- Cleaned up item equip statement a bit
+
 9/24/2015
 General
 - `mercenary_starter_gear` column structure has changed
