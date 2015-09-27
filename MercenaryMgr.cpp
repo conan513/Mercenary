@@ -231,7 +231,7 @@ std::string MercenaryMgr::GetSpellIcon(uint32 entry, WorldSession* session) cons
     return ss.str();
 }
 
-std::string MercenaryMgr::GetItemIcon(uint32 entry) const
+std::string MercenaryMgr::GetItemIcon(uint32 entry, bool rawPath) const
 {
     std::ostringstream ss;
     ss << "|TInterface";
@@ -245,7 +245,15 @@ std::string MercenaryMgr::GetItemIcon(uint32 entry) const
     {
         dispInfo = sItemDisplayInfoStore.LookupEntry(temp->DisplayInfoID);
         if (dispInfo)
+        {
             ss << "/ICONS/" << dispInfo->inventoryIcon;
+            if (rawPath)
+            {
+                ss.str("");
+                ss << "Interface/ICONS/" << dispInfo->inventoryIcon;
+                return ss.str();
+            }
+        }
     }
     if (!dispInfo)
         ss << "/InventoryItems/WoWUnknownItem01";

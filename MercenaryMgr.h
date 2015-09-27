@@ -81,7 +81,7 @@ public:
     * Returns the item's icon
     * Thanks Rochet2 for the function
     */
-    std::string GetItemIcon(uint32 entry) const;
+    std::string GetItemIcon(uint32 entry, bool rawPath = false) const;
     /*
     * Returns the slot icon, empty bag if no icon is found for a slot
     * Thanks Rochet2 for the function
