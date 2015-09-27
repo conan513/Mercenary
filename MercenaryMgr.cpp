@@ -166,7 +166,7 @@ void MercenaryMgr::UpdateSummoned(uint32 Id, bool summoned)
 
 void MercenaryMgr::OnSave(Player* player, Pet* pet)
 {
-    Mercenary* mercenary = GetMercenaryByOwner(player->GetGUIDLow());
+    Mercenary* mercenary = GetMercenaryByOwner(player->GetGUID().GetCounter());
     if (!mercenary)
         return;
 
@@ -203,7 +203,7 @@ void MercenaryMgr::OnDelete(uint32 guidLow)
 
 void MercenaryMgr::OnSummon(Player* player)
 {
-    if (Mercenary* mercenary = GetMercenaryByOwner(player->GetGUIDLow()))
+    if (Mercenary* mercenary = GetMercenaryByOwner(player->GetGUID().GetCounter()))
         mercenary->Summon(player);
 }
 

@@ -56,7 +56,7 @@ public:
     bool OnGossipSelect(Player* player, Creature* creature, uint32 /*sender*/, uint32 actions) override
     {
         player->PlayerTalkClass->ClearMenus();
-        Mercenary* mercenary = sMercenaryMgr->GetMercenaryByOwner(player->GetGUIDLow());
+        Mercenary* mercenary = sMercenaryMgr->GetMercenaryByOwner(player->GetGUID().GetCounter());
         WorldSession* session = player->GetSession();
         if (!mercenary)
         {
@@ -305,7 +305,7 @@ public:
 
     void SendToHello(Player* player, Creature* creature)
     {
-        Mercenary* mercenary = sMercenaryMgr->GetMercenaryByOwner(player->GetGUIDLow());
+        Mercenary* mercenary = sMercenaryMgr->GetMercenaryByOwner(player->GetGUID().GetCounter());
         if (!mercenary)
             player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "I want a mercenary.", 0, 1);
         else
@@ -457,7 +457,7 @@ public:
             return false;
         }
 
-        Mercenary* mercenary = sMercenaryMgr->GetMercenaryByOwner(player->GetGUIDLow());
+        Mercenary* mercenary = sMercenaryMgr->GetMercenaryByOwner(player->GetGUID().GetCounter());
         if (!mercenary)
             return false;
 
@@ -468,7 +468,7 @@ public:
     bool OnGossipSelect(Player* player, Creature* creature, uint32 /*sender*/, uint32 actions) override
     {
         player->PlayerTalkClass->ClearMenus();
-        Mercenary* mercenary = sMercenaryMgr->GetMercenaryByOwner(player->GetGUIDLow());
+        Mercenary* mercenary = sMercenaryMgr->GetMercenaryByOwner(player->GetGUID().GetCounter());
         WorldSession* session = player->GetSession();
         if (mercenary)
         {
@@ -625,7 +625,7 @@ public:
         player->PlayerTalkClass->ClearMenus();
         if (actions == 37)
         {
-            Mercenary* mercenary = sMercenaryMgr->GetMercenaryByOwner(player->GetGUIDLow());
+            Mercenary* mercenary = sMercenaryMgr->GetMercenaryByOwner(player->GetGUID().GetCounter());
             if (!mercenary)
                 return false;
 
@@ -687,7 +687,7 @@ public:
 
     void SendToHello(Player* player, Creature* creature, Mercenary* mercenary)
     {
-        if (mercenary->GetOwnerGUID() == player->GetGUIDLow())
+        if (mercenary->GetOwnerGUID() == player->GetGUID().GetCounter())
         {
             player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Change Gear", 0, 1);
             player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "View equipped Gear", 0, 2);
@@ -783,7 +783,7 @@ public:
             if (Unit* owner = m_creature->GetOwner())
 #endif
             {
-                mercenary = sMercenaryMgr->GetMercenaryByOwner(owner->GetGUIDLow());
+                mercenary = sMercenaryMgr->GetMercenaryByOwner(owner->GetGUID().GetCounter());
                 if (mercenary)
                 {
                     for (auto it = sMercenaryMgr->MercenarySpellsBegin(); it != sMercenaryMgr->MercenarySpellsEnd(); ++it)
@@ -890,7 +890,7 @@ public:
     bool OnGossipSelect(Player* player, Creature* creature, uint32 /*sender*/, uint32 actions) override
     {
         player->PlayerTalkClass->ClearMenus();
-        Mercenary* mercenary = sMercenaryMgr->GetMercenaryByOwner(player->GetGUIDLow());
+        Mercenary* mercenary = sMercenaryMgr->GetMercenaryByOwner(player->GetGUID().GetCounter());
         if (mercenary)
         {
 #ifdef MANGOS

@@ -171,7 +171,7 @@ bool Mercenary::Create(Player* player)
         return false;
 
     Id = sMercenaryMgr->MaxMercenaryId() + 1;
-    ownerGUID = player->GetGUIDLow();
+    ownerGUID = player->GetGUID().GetCounter();
     role = ROLE_NONE;
     displayId = 1;
     race = 0;
@@ -220,7 +220,7 @@ bool Mercenary::Create(Player* player, uint32 model, uint8 r, uint8 g, uint8 mer
     if (!pet->IsPositionValid())
     {
 #ifndef MANGOS
-        TC_LOG_ERROR("misc", "Pet (guidlow %d) suggested coordinates isn't valid (X: %f Y: %f)", pet->GetGUIDLow(), pet->GetPositionX(), pet->GetPositionY());
+        TC_LOG_ERROR("misc", "Pet (guidlow %d) suggested coordinates isn't valid (X: %f Y: %f)", pet->GetGUID().GetCounter(), pet->GetPositionX(), pet->GetPositionY());
 #endif
         delete pet;
         return false;
@@ -229,7 +229,9 @@ bool Mercenary::Create(Player* player, uint32 model, uint8 r, uint8 g, uint8 mer
     Map* map = player->GetMap();
 #ifndef MANGOS
     uint32 petNumber = sObjectMgr->GeneratePetNumber();
-    if (!pet->Create(sObjectMgr->GenerateLowGuid(HIGHGUID_PET), map, player->GetPhaseMask(), MERCENARY_DEFAULT_ENTRY, petNumber))
+    uint32 guidLow = map->GenerateLowGuid<HighGuid::Pet>();
+
+    if (!pet->Create(guidLow, map, player->GetPhaseMask(), MERCENARY_DEFAULT_ENTRY, petNumber))
 #else
     CreatureCreatePos pos(player, player->GetOrientation());
     CreatureInfo const* creatureInfo = ObjectMgr::GetCreatureTemplate(MERCENARY_DEFAULT_ENTRY);
@@ -250,7 +252,7 @@ bool Mercenary::Create(Player* player, uint32 model, uint8 r, uint8 g, uint8 mer
     }
 
     Id = petNumber;
-    ownerGUID = player->GetGUIDLow();
+    ownerGUID = player->GetGUID().GetCounter();
     role = mercRole;
     displayId = model;
     race = r;
