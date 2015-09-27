@@ -7,7 +7,7 @@ index 6494f92..2de6b5a 100644
      PrepareStatement(CHAR_UPD_QUEST_TRACK_COMPLETE_TIME, "UPDATE quest_tracker SET quest_complete_time = NOW() WHERE id = ? AND character_guid = ? ORDER BY quest_accept_time DESC LIMIT 1", CONNECTION_ASYNC);
      PrepareStatement(CHAR_UPD_QUEST_TRACK_ABANDON_TIME, "UPDATE quest_tracker SET quest_abandon_time = NOW() WHERE id = ? AND character_guid = ? ORDER BY quest_accept_time DESC LIMIT 1", CONNECTION_ASYNC);
 +
-+	// Mercenary
++    // Mercenary
 +    PrepareStatement(CHAR_INS_MERCENARY, "INSERT INTO mercenaries VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_BOTH);
 +    PrepareStatement(CHAR_DEL_MERCENARY, "DELETE FROM mercenaries WHERE Id=?", CONNECTION_ASYNC);
 +    PrepareStatement(CHAR_UPD_MERCENARY_SUMMON, "UPDATE mercenaries SET summoned=? WHERE Id=?", CONNECTION_ASYNC);
@@ -56,40 +56,6 @@ index d3e1173..c079b19 100644
              ai_factory = ai_registry.GetRegistryItem("PetAI");
  
          //scriptname in db
-diff --git a/src/server/game/AI/Mercenary.cpp b/src/server/game/AI/Mercenary.cpp
-index e76bcc3..d5e5ad8 100644
---- a/src/server/game/AI/Mercenary.cpp
-+++ b/src/server/game/AI/Mercenary.cpp
-@@ -171,7 +171,7 @@ bool Mercenary::Create(Player* player)
-         return false;
- 
-     Id = sMercenaryMgr->MaxMercenaryId() + 1;
--    ownerGUID = player->GetGUIDLow();
-+    ownerGUID = player->GetGUID().GetCounter();
-     role = ROLE_NONE;
-     displayId = 1;
-     race = 0;
-@@ -220,7 +220,7 @@ bool Mercenary::Create(Player* player, uint32 model, uint8 r, uint8 g, uint8 mer
-     if (!pet->IsPositionValid())
-     {
- #ifndef MANGOS
--        TC_LOG_ERROR("misc", "Pet (guidlow %d) suggested coordinates isn't valid (X: %f Y: %f)", pet->GetGUIDLow(), pet->GetPositionX(), pet->GetPositionY());
-+        TC_LOG_ERROR("misc", "Pet (guidlow %d) suggested coordinates isn't valid (X: %f Y: %f)", pet->GetGUID().GetCounter(), pet->GetPositionX(), pet->GetPositionY());
- #endif
-         delete pet;
-         return false;
-@@ -229,7 +229,9 @@ bool Mercenary::Create(Player* player, uint32 model, uint8 r, uint8 g, uint8 mer
-     Map* map = player->GetMap();
- #ifndef MANGOS
-     uint32 petNumber = sObjectMgr->GeneratePetNumber();
--    if (!pet->Create(sObjectMgr->GenerateLowGuid(HIGHGUID_PET), map, player->GetPhaseMask(), MERCENARY_DEFAULT_ENTRY, petNumber))
-+    uint32 guidLow = map->GenerateLowGuid<HighGuid::Pet>();
-+
-+    if (!pet->Create(guidLow, map, player->GetPhaseMask(), MERCENARY_DEFAULT_ENTRY, petNumber))
- #else
-     CreatureCreatePos pos(player, player->GetOrientation());
-     CreatureInfo const* creatureInfo = ObjectMgr::GetCreatureTemplate(MERCENARY_DEFAULT_ENTRY);
-
 diff --git a/src/server/game/DataStores/DBCStores.cpp b/src/server/game/DataStores/DBCStores.cpp
 index e268b37..570d4db 100644
 --- a/src/server/game/DataStores/DBCStores.cpp
@@ -137,7 +103,7 @@ index d955e95..647ff52 100644
  extern DBCStorage <ItemEntry>                    sItemStore;
  extern DBCStorage <ItemBagFamilyEntry>           sItemBagFamilyStore;
 -//extern DBCStorage <ItemDisplayInfoEntry>      sItemDisplayInfoStore; -- not used currently
-+extern DBCStorage <ItemDisplayInfoEntry>      sItemDisplayInfoStore;
++extern DBCStorage <ItemDisplayInfoEntry>         sItemDisplayInfoStore;
  extern DBCStorage <ItemExtendedCostEntry>        sItemExtendedCostStore;
  extern DBCStorage <ItemLimitCategoryEntry>       sItemLimitCategoryStore;
  extern DBCStorage <ItemRandomPropertiesEntry>    sItemRandomPropertiesStore;
@@ -157,7 +123,7 @@ index 092ef71..b08d458 100644
  struct ItemDisplayInfoEntry
  {
      uint32      ID;                                         // 0        m_ID
-+    char* inventoryIcon
++    char* inventoryIcon                                     // [1]
                                                              // 1        m_modelName[2]
                                                              // 2        m_modelTexture[2]
                                                              // 3        m_inventoryIcon
@@ -510,5 +476,5 @@ index 5218f76..f1fcb85 100644
 -#  ${sources_Custom}
 +  ${sources_Custom}
  )
- 
+
  message("  -> Prepared: Custom")
