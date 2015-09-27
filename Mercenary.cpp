@@ -518,26 +518,22 @@ bool Mercenary::CanEquipItem(Player* player, Item* item)
     if (player->HasItemCount(item->GetEntry(), 1))
         player->DestroyItemCount(item->GetEntry(), 1, true);
 
-	// Destroy item from inventory and add the old one back (if exists)
-	if (oldItemId > 0)
-	{
+    // Destroy item from inventory and add the old one back (if exists)
+    if (oldItemId > 0)
+    {
 #ifdef MANGOS
         ItemPosCountVec dest;
         InventoryResult msg = player->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, oldItemId, 1);
-        if (msg != EQUIP_ERR_OK || dest.empty())
+        if (msg == EQUIP_ERR_OK || !dest.empty())
         {
-            player->SendEquipError(msg, NULL, NULL, oldItemId);
-            return false;
+            Item* newitem = player->StoreNewItem(dest, oldItemId, true);
+            if (newitem)
+                player->SendNewItem(newitem, 1, true, false);
         }
-
-        Item* newitem = player->StoreNewItem(dest, oldItemId, true);
-        if (newitem)
-            player->SendNewItem(newitem, 1, true, false);
 #else
-        if (!player->AddItem(oldItemId, 1))
-            return false;
+        player->AddItem(oldItemId, 1);
 #endif
-	}
+    }
 
     if (editSlot != SLOT_MAIN_HAND || editSlot != SLOT_OFF_HAND || editSlot != SLOT_RANGED)
         SendMirrorImagePacket(pet);
