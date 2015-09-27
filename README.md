@@ -13,10 +13,10 @@ This system is still in development and there will be bugs. You can report issue
 
 ##Installation
 
-This system requires core changes. Below you will find diffs for each emulator supported.
+This system requires core changes. Below you will find appropriate installation guides to help you through the installation process.
 
-* [MaNGOS Diff](https://github.com/EmuDevs/Mercenary/blob/master/diffs/mangostwo_diff.diff)
-* [TrinityCore Diff](https://github.com/EmuDevs/Mercenary/blob/master/diffs/trinitycore_diff.diff)
+* MaNGOSTwo Installation | [Windows](https://github.com/EmuDevs/Mercenary/wiki/MaNGOS-%28mangostwo%29-Installation#windows) | [Linux](https://github.com/EmuDevs/Mercenary/wiki/MaNGOS-%28mangostwo%29-Installation#linux)
+* TrinityCore Installation | [Windows](https://github.com/EmuDevs/Mercenary/wiki/TrinityCore-3.3.5-Installation#windows) | [Linux](https://github.com/EmuDevs/Mercenary/wiki/TrinityCore-3.3.5-Installation#linux)
 
 ##Links
 * [Mercenary Source] (https://github.com/EmuDevs/Mercenary)
