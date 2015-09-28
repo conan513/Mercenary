@@ -53,12 +53,7 @@ bool Mercenary::LoadFromDB(QueryResult result)
     race = fields[4].GetUInt8();
     gender = fields[5].GetUInt8();
     type = fields[6].GetUInt8();
-    strength = fields[7].GetUInt32();
-    agility = fields[8].GetUInt32();
-    stamina = fields[9].GetUInt32();
-    intellect = fields[10].GetUInt32();
-    spirit = fields[11].GetUInt32();
-    summoned = fields[12].GetBool();
+    summoned = fields[7].GetBool();
 
     LoadGearFromDB();
 
@@ -78,12 +73,7 @@ void Mercenary::SaveToDB()
     stmt->setUInt8(4, race);
     stmt->setUInt8(5, gender);
     stmt->setUInt8(6, type);
-    stmt->setUInt32(7, strength);
-    stmt->setUInt32(8, agility);
-    stmt->setUInt32(9, stamina);
-    stmt->setUInt32(10, intellect);
-    stmt->setUInt32(11, spirit);
-    stmt->setBool(12, summoned);
+    stmt->setBool(7, summoned);
 
     trans->Append(stmt);
     CharacterDatabase.CommitTransaction(trans);
@@ -92,7 +82,7 @@ void Mercenary::SaveToDB()
 
     static SqlStatementID insMerc;
     SqlStatement saveMerc = CharacterDatabase.CreateStatement(insMerc, "INSERT INTO mercenaries (Id, ownerGUID, role, displayId, race, gender, type, "
-        "strength, agility, stamina, intellect, spirit, summoned) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        "summoned) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 
     saveMerc.addUInt32(Id);
     saveMerc.addUInt32(ownerGUID);
@@ -101,11 +91,6 @@ void Mercenary::SaveToDB()
     saveMerc.addUInt8(race);
     saveMerc.addUInt8(gender);
     saveMerc.addUInt8(type);
-    saveMerc.addUInt32(strength);
-    saveMerc.addUInt32(agility);
-    saveMerc.addUInt32(stamina);
-    saveMerc.addUInt32(intellect);
-    saveMerc.addUInt32(spirit);
     saveMerc.addBool(summoned);
 
     saveMerc.Execute();
@@ -171,17 +156,16 @@ bool Mercenary::Create(Player* player)
         return false;
 
     Id = sMercenaryMgr->MaxMercenaryId() + 1;
+#ifndef MANGOS
     ownerGUID = player->GetGUID().GetCounter();
+#else
+    ownerGUID = player->GetGUIDLow();
+#endif
     role = ROLE_NONE;
     displayId = 1;
     race = 0;
     gender = GENDER_NONE;
     type = MERCENARY_TYPE_NONE;
-    strength = 0;
-    agility = 0;
-    stamina = 0;
-    intellect = 0;
-    spirit = 0;
     summoned = false;
     beingCreated = true;
 
@@ -252,7 +236,11 @@ bool Mercenary::Create(Player* player, uint32 model, uint8 r, uint8 g, uint8 mer
     }
 
     Id = petNumber;
+#ifndef MANGOS
     ownerGUID = player->GetGUID().GetCounter();
+#else
+    ownerGUID = player->GetGUIDLow();
+#endif
     role = mercRole;
     displayId = model;
     race = r;
@@ -271,11 +259,6 @@ bool Mercenary::Create(Player* player, uint32 model, uint8 r, uint8 g, uint8 mer
     pet->MonsterSay("Thanks for choosing me as your mercenary! If you need help or if you want to change what I do, talk to me.", LANG_UNIVERSAL, player);
     pet->MonsterSay("Don't forget to setup my skills, actions and gear!", LANG_UNIVERSAL, player);
 #endif
-    strength = pet->GetStat(STAT_STRENGTH);
-    agility = pet->GetStat(STAT_AGILITY);
-    stamina = pet->GetStat(STAT_STAMINA);
-    intellect = pet->GetStat(STAT_INTELLECT);
-    spirit = pet->GetStat(STAT_SPIRIT);
     editSlot = -1;
     summoned = true;
     beingCreated = false;
@@ -695,7 +678,6 @@ bool Mercenary::UpdateStats(Player* player, Stats stat, Pet* pet)
     }
 
     pet->SetStat(stat, int32(value));
-    SetStat(stat, uint32(value));
     pet->ApplyStatBuffMod(stat, player->GetStat(stat) + ownersBonus, true);
 
     switch (stat)
@@ -925,28 +907,6 @@ void Mercenary::UpdateMaxPower(Powers power, Pet* pet)
     value *= pet->GetModifierValue(unitMod, TOTAL_PCT);
 
     pet->SetMaxPower(power, uint32(value));
-}
-
-void Mercenary::SetStat(Stats stat, uint32 val)
-{
-    switch (stat)
-    {
-        case STAT_STRENGTH:
-            strength = val;
-            break;
-        case STAT_AGILITY:
-            agility = val;
-            break;
-        case STAT_STAMINA:
-            stamina = val;
-            break;
-        case STAT_INTELLECT:
-            intellect = val;
-            break;
-        case STAT_SPIRIT:
-            spirit = val;
-            break;
-    }
 }
 
 uint8 Mercenary::GetInvTypeSlot(uint8 characterSlot) const

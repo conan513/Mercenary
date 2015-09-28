@@ -251,10 +251,6 @@ public:
     * Updates the Mercenary's gear in the database
     */
     void UpdateGear();
-    /*
-    * Sets specified stat
-    */
-    void SetStat(Stats stat, uint32 val);
 
     /*
     * Returns InventorySlot Id by supplying a CharacterSlot Id
@@ -268,11 +264,6 @@ public:
     uint8 GetRace() const { return race; }
     uint8 GetGender() const { return gender; }
     uint8 GetType() const { return type; }
-    uint32 GetStrength() const { return strength; }
-    uint32 GetAgility() const { return agility; }
-    uint32 GetStamina() const { return stamina; }
-    uint32 GetIntellect() const { return intellect; }
-    uint32 GetSpirit() const { return spirit; }
     bool IsSummoned() const { return summoned; }
     bool IsBeingCreated() const { return beingCreated; }
     uint8 GetEditSlot() const { return editSlot; }
@@ -364,11 +355,6 @@ private:
     uint8 race;
     uint8 gender;
     uint8 type;
-    uint32 strength;
-    uint32 agility;
-    uint32 stamina;
-    uint32 intellect;
-    uint32 spirit;
     bool summoned;
     bool beingCreated;
     uint8 editSlot;

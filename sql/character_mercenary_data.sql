@@ -10,11 +10,6 @@ CREATE TABLE `mercenaries` (
   `race` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `gender` tinyint(3) unsigned NOT NULL,
   `type` tinyint(3) unsigned NOT NULL DEFAULT '0',
-  `strength` int(10) unsigned NOT NULL DEFAULT '22',
-  `agility` int(10) unsigned NOT NULL DEFAULT '22',
-  `stamina` int(10) unsigned NOT NULL DEFAULT '25',
-  `intellect` int(10) unsigned NOT NULL DEFAULT '28',
-  `spirit` int(10) unsigned NOT NULL DEFAULT '27',
   `summoned` tinyint(1) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`Id`),
   KEY `ownerGUID` (`ownerGUID`)

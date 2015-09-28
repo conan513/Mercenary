@@ -1,3 +1,11 @@
+9/28/2015
+General
+- `mercenaries` column structure was changed
+- Removed strength, intellect, spirit, stamina and agility stats since they don't need to be saved as they are initialized in-game
+
+Fixes
+- Fixed MaNGOS compile
+
 9/26/2015
 General
 - Equipping an item on your Mercenary will now destroy the item in your inventory. If the Mercenary had an item already equipped, that item will still be replaced but will be given back
