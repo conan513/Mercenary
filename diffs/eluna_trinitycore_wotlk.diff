@@ -123,7 +123,7 @@ index 092ef71..b08d458 100644
  struct ItemDisplayInfoEntry
  {
      uint32      ID;                                         // 0        m_ID
-+    char* inventoryIcon                                     // [1]
++    char* inventoryIcon;                                    // [1]
                                                              // 1        m_modelName[2]
                                                              // 2        m_modelTexture[2]
                                                              // 3        m_inventoryIcon
