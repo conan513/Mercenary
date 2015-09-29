@@ -113,7 +113,7 @@ void MercenaryMgr::LoadMercenaries()
         } while (result->NextRow());
     }
 
-    result = CharacterDatabase.Query("SELECT Id, ownerGUID, role, displayId, race, gender, type, strength, agility, stamina, intellect, spirit, summoned FROM mercenaries");
+    result = CharacterDatabase.Query("SELECT Id, ownerGUID, role, displayId, race, gender, type, summoned FROM mercenaries");
     if (result)
     {
         do
