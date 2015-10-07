@@ -49,6 +49,15 @@ public:
             return false;
         }
 
+        if (Pet* pet = player->GetPet())
+        {
+            if (pet->GetEntry() != MERCENARY_DEFAULT_ENTRY)
+            {
+                player->GetSession()->SendNotification("You must dismiss your pet for a Mercenary.");
+                return false;
+            }
+        }
+
         SendToHello(player, creature);
         return true;
     }
@@ -405,11 +414,13 @@ public:
             || type == MERCENARY_TYPE_SHAMAN);
         bool isTank = (type == MERCENARY_TYPE_WARRIOR || type == MERCENARY_TYPE_DK || type == MERCENARY_TYPE_PALADIN
             || type == MERCENARY_TYPE_DRUID);
+        bool isRanged = (type == MERCENARY_TYPE_HUNTER);
+
         if (isMelee)
             player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Melee DPS", 0, 34);
         if (isCaster)
             player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Caster DPS", 0, 35);
-        if (type == MERCENARY_TYPE_HUNTER)
+        if (isRanged)
             player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Marksman DPS", 0, 36);
         if (isHealer)
             player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Healer", 0, 37);
@@ -903,6 +914,15 @@ public:
         {
             player->GetSession()->SendNotification("You are in combat.");
             return false;
+        }
+
+        if (Pet* pet = player->GetPet())
+        {
+            if (pet->GetEntry() != MERCENARY_DEFAULT_ENTRY)
+            {
+                player->GetSession()->SendNotification("You must dismiss your pet for a Mercenary.");
+                return false;
+            }
         }
 
         player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "I would like to hire you.", 0, 1);
