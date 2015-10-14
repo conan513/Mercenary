@@ -6,6 +6,8 @@
 #include "MercenaryMgr.h"
 #include "PetAI.h"
 #include "Group.h"
+#include "ScriptMgr.h"
+#include "ScriptedGossip.h"
 
 #ifndef MANGOS
 class mercenary_world_load : public WorldScript
