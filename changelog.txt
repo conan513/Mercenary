@@ -1,3 +1,9 @@
+12/1/2015
+General
+- TrinityCore diff is now updated
+- Updated starter gear query and added default items.
+- Removed CMakeLists.txt edit in all diffs because this conflicts with other edits people might have.
+
 9/28/2015
 General
 - `mercenaries` column structure was changed
