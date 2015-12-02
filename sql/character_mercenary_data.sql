@@ -72,17 +72,17 @@ CREATE TABLE `mercenary_start_gear` (
 -- ----------------------------
 -- Records of mercenary_start_gear
 -- ----------------------------
-INSERT INTO `mercenary_start_gear` VALUES ('1', '1', '70000', '40816', '40856', '40778', '40836', '40797', '37367', '0', '0', '0');
-INSERT INTO `mercenary_start_gear` VALUES ('6', '2', '70000', '41943', '0', '0', '0', '0', '0', '0', '0', '0');
-INSERT INTO `mercenary_start_gear` VALUES ('2', '1', '70000', '40780', '0', '0', '0', '0', '0', '0', '0', '0');
-INSERT INTO `mercenary_start_gear` VALUES ('3', '2', '70000', '0', '0', '0', '0', '0', '0', '0', '0', '0');
-INSERT INTO `mercenary_start_gear` VALUES ('4', '1', '70000', '0', '0', '40779', '0', '0', '0', '0', '0', '0');
-INSERT INTO `mercenary_start_gear` VALUES ('5', '2', '70000', '0', '42008', '0', '0', '0', '0', '0', '0', '0');
-INSERT INTO `mercenary_start_gear` VALUES ('7', '3', '70000', '41269', '41271', '41272', '41270', '41268', '0', '0', '0', '0');
-INSERT INTO `mercenary_start_gear` VALUES ('8', '0', '70000', '0', '0', '0', '0', '0', '0', '0', '0', '0');
-INSERT INTO `mercenary_start_gear` VALUES ('9', '1', '70000', '41644', '41646', '41647', '41645', '41643', '0', '0', '0', '0');
-INSERT INTO `mercenary_start_gear` VALUES ('10', '2', '70000', '41016', '41041', '40987', '41030', '41004', '35650', '0', '0', '0');
-INSERT INTO `mercenary_start_gear` VALUES ('1', '1', '70001', '40816', '40856', '40778', '40836', '40797', '37367', '0', '0', '0');
+INSERT INTO `mercenary_start_gear` VALUES ('1', '1', '70000', '0', '0', '0', '6121', '0', '40', '25', '0', '0');
+INSERT INTO `mercenary_start_gear` VALUES ('6', '2', '70000', '0', '0', '0', '6121', '0', '40', '25', '0', '0');
+INSERT INTO `mercenary_start_gear` VALUES ('2', '1', '70000', '0', '0', '0', '6121', '0', '40', '25', '0', '0');
+INSERT INTO `mercenary_start_gear` VALUES ('3', '2', '70000', '0', '0', '0', '6121', '0', '40', '25', '0', '0');
+INSERT INTO `mercenary_start_gear` VALUES ('4', '1', '70000', '0', '0', '0', '6121', '0', '40', '25', '0', '0');
+INSERT INTO `mercenary_start_gear` VALUES ('5', '2', '70000', '0', '0', '0', '6121', '0', '40', '25', '0', '0');
+INSERT INTO `mercenary_start_gear` VALUES ('7', '3', '70000', '0', '0', '0', '6121', '0', '40', '25', '0', '0');
+INSERT INTO `mercenary_start_gear` VALUES ('8', '0', '70000', '0', '0', '0', '6121', '0', '40', '25', '0', '0');
+INSERT INTO `mercenary_start_gear` VALUES ('9', '1', '70000', '0', '0', '0', '6121', '0', '40', '25', '0', '0');
+INSERT INTO `mercenary_start_gear` VALUES ('10', '2', '70000', '0', '0', '0', '6121', '0', '40', '25', '0', '0');
+INSERT INTO `mercenary_start_gear` VALUES ('1', '1', '70001', '0', '0', '0', '6121', '0', '40', '25', '0', '0');
 
 -- ----------------------------
 -- Table structure for `mercenary_talk`

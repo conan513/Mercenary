@@ -2,10 +2,12 @@ diff --git a/src/server/database/Database/Implementation/CharacterDatabase.cpp b
 index 1efdb16..c93e5d8 100644
 --- a/src/server/database/Database/Implementation/CharacterDatabase.cpp
 +++ b/src/server/database/Database/Implementation/CharacterDatabase.cpp
-@@ -611,4 +611,13 @@ void CharacterDatabaseConnection::DoPrepareStatements()
-     PrepareStatement(CHAR_UPD_QUEST_TRACK_GM_COMPLETE, "UPDATE quest_tracker SET completed_by_gm = 1 WHERE id = ? AND character_guid = ? ORDER BY quest_accept_time DESC LIMIT 1", CONNECTION_ASYNC);
+@@ -612,6 +612,15 @@ void CharacterDatabaseConnection::DoPrepareStatements()
      PrepareStatement(CHAR_UPD_QUEST_TRACK_COMPLETE_TIME, "UPDATE quest_tracker SET quest_complete_time = NOW() WHERE id = ? AND character_guid = ? ORDER BY quest_accept_time DESC LIMIT 1", CONNECTION_ASYNC);
      PrepareStatement(CHAR_UPD_QUEST_TRACK_ABANDON_TIME, "UPDATE quest_tracker SET quest_abandon_time = NOW() WHERE id = ? AND character_guid = ? ORDER BY quest_accept_time DESC LIMIT 1", CONNECTION_ASYNC);
+
+     // DeserterTracker
+     PrepareStatement(CHAR_INS_DESERTER_TRACK, "INSERT INTO battleground_deserters (guid, type, datetime) VALUES (?, ?, NOW())", CONNECTION_ASYNC);
 +
 +    // Mercenary
 +    PrepareStatement(CHAR_INS_MERCENARY, "INSERT INTO mercenaries VALUES(?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_BOTH);
@@ -20,10 +22,12 @@ diff --git a/src/server/database/Database/Implementation/CharacterDatabase.h b/s
 index f88a912..7bfe5da 100644
 --- a/src/server/database/Database/Implementation/CharacterDatabase.h
 +++ b/src/server/database/Database/Implementation/CharacterDatabase.h
-@@ -544,6 +544,14 @@ enum CharacterDatabaseStatements
+@@ -531,10 +531,18 @@ enum CharacterDatabaseStatements
      CHAR_UPD_QUEST_TRACK_COMPLETE_TIME,
      CHAR_UPD_QUEST_TRACK_ABANDON_TIME,
  
+     CHAR_INS_DESERTER_TRACK,
+
 +    CHAR_INS_MERCENARY,
 +    CHAR_DEL_MERCENARY,
 +    CHAR_UPD_MERCENARY_SUMMON,
@@ -35,11 +39,15 @@ index f88a912..7bfe5da 100644
      MAX_CHARACTERDATABASE_STATEMENTS
  };
  
+ class CharacterDatabaseConnection : public MySQLConnection
+ {
 diff --git a/src/server/game/AI/CreatureAISelector.cpp b/src/server/game/AI/CreatureAISelector.cpp
 index 07bd49b..bed43cf 100644
 --- a/src/server/game/AI/CreatureAISelector.cpp
 +++ b/src/server/game/AI/CreatureAISelector.cpp
-@@ -24,6 +24,7 @@
+@@ -22,18 +22,19 @@
+
+ #include "MovementGenerator.h"
  #include "TemporarySummon.h"
  #include "CreatureAIFactory.h"
  #include "ScriptMgr.h"
@@ -47,15 +55,17 @@ index 07bd49b..bed43cf 100644
  
  namespace FactorySelector
  {
-@@ -32,7 +33,7 @@ namespace FactorySelector
+     CreatureAI* selectAI(Creature* creature)
+     {
          const CreatureAICreator* ai_factory = NULL;
-         CreatureAIRegistry& ai_registry(*CreatureAIRegistry::instance());
  
 -        if (creature->IsPet())
 +        if (creature->IsPet() && creature->GetScriptName() != sMercenaryMgr->GetAIName())
-             ai_factory = ai_registry.GetRegistryItem("PetAI");
+             ai_factory = sCreatureAIRegistry->GetRegistryItem("PetAI");
  
          //scriptname in db
+         if (!ai_factory)
+             if (CreatureAI* scriptedAI = sScriptMgr->GetCreatureAI(creature))
 diff --git a/src/server/game/DataStores/DBCStores.cpp b/src/server/game/DataStores/DBCStores.cpp
 index e268b37..570d4db 100644
 --- a/src/server/game/DataStores/DBCStores.cpp
@@ -98,7 +108,9 @@ diff --git a/src/server/game/DataStores/DBCStores.h b/src/server/game/DataStores
 index d955e95..c9b70c1 100644
 --- a/src/server/game/DataStores/DBCStores.h
 +++ b/src/server/game/DataStores/DBCStores.h
-@@ -132,7 +132,7 @@ extern DBCStorage <GtRegenMPPerSptEntry>         sGtRegenMPPerSptStore;
+@@ -133,11 +133,11 @@ extern DBCStorage <GtOCTRegenHPEntry>            sGtOCTRegenHPStore;
+ extern DBCStorage <GtRegenHPPerSptEntry>         sGtRegenHPPerSptStore;
+ extern DBCStorage <GtRegenMPPerSptEntry>         sGtRegenMPPerSptStore;
  extern DBCStorage <HolidaysEntry>                sHolidaysStore;
  extern DBCStorage <ItemEntry>                    sItemStore;
  extern DBCStorage <ItemBagFamilyEntry>           sItemBagFamilyStore;
@@ -107,14 +119,20 @@ index d955e95..c9b70c1 100644
  extern DBCStorage <ItemExtendedCostEntry>        sItemExtendedCostStore;
  extern DBCStorage <ItemLimitCategoryEntry>       sItemLimitCategoryStore;
  extern DBCStorage <ItemRandomPropertiesEntry>    sItemRandomPropertiesStore;
-@@ -165,6 +165,7 @@ extern DBCStorage <SpellDurationEntry>           sSpellDurationStore;
+ extern DBCStorage <ItemRandomSuffixEntry>        sItemRandomSuffixStore;
+ extern DBCStorage <ItemSetEntry>                 sItemSetStore;
+@@ -166,10 +166,11 @@ extern DBCStorage <SpellCategoryEntry>           sSpellCategoryStore;
+ extern DBCStorage <SpellDifficultyEntry>         sSpellDifficultyStore;
+ extern DBCStorage <SpellDurationEntry>           sSpellDurationStore;
  extern DBCStorage <SpellFocusObjectEntry>        sSpellFocusObjectStore;
  extern DBCStorage <SpellItemEnchantmentEntry>    sSpellItemEnchantmentStore;
  extern DBCStorage <SpellItemEnchantmentConditionEntry> sSpellItemEnchantmentConditionStore;
 +extern DBCStorage <SpellIconEntry>               sSpellIconStore;
- extern SpellCategoryStore                        sSpellsByCategoryStore;
  extern PetFamilySpellsStore                      sPetFamilySpellsStore;
  extern DBCStorage <SpellRadiusEntry>             sSpellRadiusStore;
+ extern DBCStorage <SpellRangeEntry>              sSpellRangeStore;
+ extern DBCStorage <SpellRuneCostEntry>           sSpellRuneCostStore;
+ extern DBCStorage <SpellShapeshiftEntry>         sSpellShapeshiftStore;
 diff --git a/src/server/game/DataStores/DBCStructure.h b/src/server/game/DataStores/DBCStructure.h
 index 092ef71..caf888b 100644
 --- a/src/server/game/DataStores/DBCStructure.h
@@ -465,15 +483,3 @@ index bb22d27..7a259a5 100644
          case CMSG_INSPECT:                              //   0               3.5
          case CMSG_AREA_SPIRIT_HEALER_QUERY:             // not profiled
          case CMSG_STANDSTATECHANGE:                     // not profiled
-diff --git a/src/server/scripts/Custom/CMakeLists.txt b/src/server/scripts/Custom/CMakeLists.txt
-index 5218f76..90c5374 100644
---- a/src/server/scripts/Custom/CMakeLists.txt
-+++ b/src/server/scripts/Custom/CMakeLists.txt
-@@ -13,6 +13,7 @@
- set(scripts_STAT_SRCS
-   ${scripts_STAT_SRCS}
- #  ${sources_Custom}
-+  Custom/mercenary_gossip.cpp
- )
-
- message("  -> Prepared: Custom")

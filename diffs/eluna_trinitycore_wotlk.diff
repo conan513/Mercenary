@@ -465,16 +465,3 @@ index 02fec47..c576207 100644
          case CMSG_INSPECT:                              //   0               3.5
          case CMSG_AREA_SPIRIT_HEALER_QUERY:             // not profiled
          case CMSG_STANDSTATECHANGE:                     // not profiled
-diff --git a/src/server/scripts/Custom/CMakeLists.txt b/src/server/scripts/Custom/CMakeLists.txt
-index 5218f76..f1fcb85 100644
---- a/src/server/scripts/Custom/CMakeLists.txt
-+++ b/src/server/scripts/Custom/CMakeLists.txt
-@@ -12,7 +12,7 @@
- 
- set(scripts_STAT_SRCS
-   ${scripts_STAT_SRCS}
--#  ${sources_Custom}
-+  ${sources_Custom}
- )
-
- message("  -> Prepared: Custom")
