@@ -9,7 +9,7 @@ Interact with your Mercenary, changing its skills, name and more.
 Follow us on [EmuDevs Twitter](https://twitter.com/EmuDevs) page for news.
 Subscribe on [EmuDevs Youtube] (https://www.youtube.com/user/EmuDevs) channel for videos of this project.
 
-This system is still in development and there will be bugs. You can report issues at [EmuDevs](http://emudevs.com/forumdisplay.php/312-Support) or the [Issue Tracker](https://github.com/EmuDevs/Mercenary/issues)
+This system is still in development and there will be bugs. You can report issues at [EmuDevs](http://emudevs.com/forumdisplay.php/276-Scripting) or the [Issue Tracker](https://github.com/EmuDevs/Mercenary/issues)
 
 ##Installation
 
