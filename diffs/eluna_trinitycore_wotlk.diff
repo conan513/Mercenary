@@ -1,11 +1,11 @@
 diff --git a/src/server/database/Database/Implementation/CharacterDatabase.cpp b/src/server/database/Database/Implementation/CharacterDatabase.cpp
-index 6494f92..2de6b5a 100644
+index 140f3bf..baadec9 100644
 --- a/src/server/database/Database/Implementation/CharacterDatabase.cpp
 +++ b/src/server/database/Database/Implementation/CharacterDatabase.cpp
-@@ -610,4 +610,13 @@ void CharacterDatabaseConnection::DoPrepareStatements()
-     PrepareStatement(CHAR_UPD_QUEST_TRACK_GM_COMPLETE, "UPDATE quest_tracker SET completed_by_gm = 1 WHERE id = ? AND character_guid = ? ORDER BY quest_accept_time DESC LIMIT 1", CONNECTION_ASYNC);
-     PrepareStatement(CHAR_UPD_QUEST_TRACK_COMPLETE_TIME, "UPDATE quest_tracker SET quest_complete_time = NOW() WHERE id = ? AND character_guid = ? ORDER BY quest_accept_time DESC LIMIT 1", CONNECTION_ASYNC);
-     PrepareStatement(CHAR_UPD_QUEST_TRACK_ABANDON_TIME, "UPDATE quest_tracker SET quest_abandon_time = NOW() WHERE id = ? AND character_guid = ? ORDER BY quest_accept_time DESC LIMIT 1", CONNECTION_ASYNC);
+@@ -614,4 +614,13 @@ void CharacterDatabaseConnection::DoPrepareStatements()
+ 
+     // DeserterTracker
+     PrepareStatement(CHAR_INS_DESERTER_TRACK, "INSERT INTO battleground_deserters (guid, type, datetime) VALUES (?, ?, NOW())", CONNECTION_ASYNC);
 +
 +    // Mercenary
 +    PrepareStatement(CHAR_INS_MERCENARY, "INSERT INTO mercenaries VALUES(?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_BOTH);
@@ -17,13 +17,14 @@ index 6494f92..2de6b5a 100644
 +    PrepareStatement(CHAR_DEL_MERCENARY_GEAR, "DELETE FROM mercenary_gear WHERE guid=?", CONNECTION_ASYNC);
  }
 diff --git a/src/server/database/Database/Implementation/CharacterDatabase.h b/src/server/database/Database/Implementation/CharacterDatabase.h
-index a7ab5d0..afc838b 100644
+index c0ff9cb..195d1a0 100644
 --- a/src/server/database/Database/Implementation/CharacterDatabase.h
 +++ b/src/server/database/Database/Implementation/CharacterDatabase.h
-@@ -543,6 +543,14 @@ enum CharacterDatabaseStatements
-     CHAR_UPD_QUEST_TRACK_COMPLETE_TIME,
-     CHAR_UPD_QUEST_TRACK_ABANDON_TIME,
+@@ -533,6 +533,15 @@ enum CharacterDatabaseStatements
  
+     CHAR_INS_DESERTER_TRACK,
+ 
++    // Mercenary
 +    CHAR_INS_MERCENARY,
 +    CHAR_DEL_MERCENARY,
 +    CHAR_UPD_MERCENARY_SUMMON,
@@ -36,7 +37,7 @@ index a7ab5d0..afc838b 100644
  };
  
 diff --git a/src/server/game/AI/CreatureAISelector.cpp b/src/server/game/AI/CreatureAISelector.cpp
-index d3e1173..c079b19 100644
+index c8c7838..b3d6aad 100644
 --- a/src/server/game/AI/CreatureAISelector.cpp
 +++ b/src/server/game/AI/CreatureAISelector.cpp
 @@ -24,6 +24,7 @@
@@ -47,29 +48,29 @@ index d3e1173..c079b19 100644
  
  namespace FactorySelector
  {
-@@ -32,7 +33,7 @@ namespace FactorySelector
+@@ -31,7 +32,7 @@ namespace FactorySelector
+     {
          const CreatureAICreator* ai_factory = NULL;
-         CreatureAIRegistry& ai_registry(*CreatureAIRegistry::instance());
  
 -        if (creature->IsPet())
 +        if (creature->IsPet() && creature->GetScriptName() != sMercenaryMgr->GetAIName())
-             ai_factory = ai_registry.GetRegistryItem("PetAI");
+             ai_factory = sCreatureAIRegistry->GetRegistryItem("PetAI");
  
          //scriptname in db
 diff --git a/src/server/game/DataStores/DBCStores.cpp b/src/server/game/DataStores/DBCStores.cpp
-index e268b37..570d4db 100644
+index 5f1de67..64bdda5 100644
 --- a/src/server/game/DataStores/DBCStores.cpp
 +++ b/src/server/game/DataStores/DBCStores.cpp
-@@ -119,7 +119,7 @@ DBCStorage <HolidaysEntry>                sHolidaysStore(Holidaysfmt);
+@@ -120,7 +120,7 @@ DBCStorage <HolidaysEntry>                sHolidaysStore(Holidaysfmt);
  DBCStorage <ItemEntry>                    sItemStore(Itemfmt);
  DBCStorage <ItemBagFamilyEntry>           sItemBagFamilyStore(ItemBagFamilyfmt);
  //DBCStorage <ItemCondExtCostsEntry> sItemCondExtCostsStore(ItemCondExtCostsEntryfmt);
 -//DBCStorage <ItemDisplayInfoEntry> sItemDisplayInfoStore(ItemDisplayTemplateEntryfmt); -- not used currently
-+DBCStorage <ItemDisplayInfoEntry> sItemDisplayInfoStore(ItemDisplayTemplateEntryfmt);
++DBCStorage <ItemDisplayInfoEntry>         sItemDisplayInfoStore(ItemDisplayTemplateEntryfmt);
  DBCStorage <ItemExtendedCostEntry> sItemExtendedCostStore(ItemExtendedCostEntryfmt);
  DBCStorage <ItemLimitCategoryEntry> sItemLimitCategoryStore(ItemLimitCategoryEntryfmt);
  DBCStorage <ItemRandomPropertiesEntry> sItemRandomPropertiesStore(ItemRandomPropertiesfmt);
-@@ -175,6 +175,7 @@ DBCStorage <SpellRadiusEntry> sSpellRadiusStore(SpellRadiusfmt);
+@@ -181,6 +181,7 @@ DBCStorage <SpellRadiusEntry> sSpellRadiusStore(SpellRadiusfmt);
  DBCStorage <SpellRangeEntry> sSpellRangeStore(SpellRangefmt);
  DBCStorage <SpellRuneCostEntry> sSpellRuneCostStore(SpellRuneCostfmt);
  DBCStorage <SpellShapeshiftEntry> sSpellShapeshiftStore(SpellShapeshiftfmt);
@@ -77,7 +78,7 @@ index e268b37..570d4db 100644
  DBCStorage <StableSlotPricesEntry> sStableSlotPricesStore(StableSlotPricesfmt);
  DBCStorage <SummonPropertiesEntry> sSummonPropertiesStore(SummonPropertiesfmt);
  DBCStorage <TalentEntry> sTalentStore(TalentEntryfmt);
-@@ -378,7 +379,7 @@ void LoadDBCStores(const std::string& dataPath)
+@@ -384,7 +385,7 @@ void LoadDBCStores(const std::string& dataPath)
  
      LoadDBC(availableDbcLocales, bad_dbc_files, sItemStore,                   dbcPath, "Item.dbc");
      LoadDBC(availableDbcLocales, bad_dbc_files, sItemBagFamilyStore,          dbcPath, "ItemBagFamily.dbc");
@@ -86,7 +87,7 @@ index e268b37..570d4db 100644
      //LoadDBC(dbcCount, availableDbcLocales, bad_dbc_files, sItemCondExtCostsStore,       dbcPath, "ItemCondExtCosts.dbc");
      LoadDBC(availableDbcLocales, bad_dbc_files, sItemExtendedCostStore,       dbcPath, "ItemExtendedCost.dbc");
      LoadDBC(availableDbcLocales, bad_dbc_files, sItemLimitCategoryStore,      dbcPath, "ItemLimitCategory.dbc");
-@@ -478,6 +479,7 @@ void LoadDBCStores(const std::string& dataPath)
+@@ -509,6 +510,7 @@ void LoadDBCStores(const std::string& dataPath)
      LoadDBC(availableDbcLocales, bad_dbc_files, sSpellRangeStore,             dbcPath, "SpellRange.dbc");
      LoadDBC(availableDbcLocales, bad_dbc_files, sSpellRuneCostStore,          dbcPath, "SpellRuneCost.dbc");
      LoadDBC(availableDbcLocales, bad_dbc_files, sSpellShapeshiftStore,        dbcPath, "SpellShapeshiftForm.dbc");
@@ -95,10 +96,10 @@ index e268b37..570d4db 100644
      LoadDBC(availableDbcLocales, bad_dbc_files, sSummonPropertiesStore,       dbcPath, "SummonProperties.dbc");
  
 diff --git a/src/server/game/DataStores/DBCStores.h b/src/server/game/DataStores/DBCStores.h
-index d955e95..647ff52 100644
+index 41a9738..46d0c57 100644
 --- a/src/server/game/DataStores/DBCStores.h
 +++ b/src/server/game/DataStores/DBCStores.h
-@@ -132,7 +132,7 @@ extern DBCStorage <GtRegenMPPerSptEntry>         sGtRegenMPPerSptStore;
+@@ -135,7 +135,7 @@ extern DBCStorage <GtRegenMPPerSptEntry>         sGtRegenMPPerSptStore;
  extern DBCStorage <HolidaysEntry>                sHolidaysStore;
  extern DBCStorage <ItemEntry>                    sItemStore;
  extern DBCStorage <ItemBagFamilyEntry>           sItemBagFamilyStore;
@@ -107,27 +108,27 @@ index d955e95..647ff52 100644
  extern DBCStorage <ItemExtendedCostEntry>        sItemExtendedCostStore;
  extern DBCStorage <ItemLimitCategoryEntry>       sItemLimitCategoryStore;
  extern DBCStorage <ItemRandomPropertiesEntry>    sItemRandomPropertiesStore;
-@@ -172,6 +172,7 @@ extern DBCStorage <SpellRangeEntry>              sSpellRangeStore;
+@@ -173,6 +173,7 @@ extern DBCStorage <SpellRadiusEntry>             sSpellRadiusStore;
+ extern DBCStorage <SpellRangeEntry>              sSpellRangeStore;
  extern DBCStorage <SpellRuneCostEntry>           sSpellRuneCostStore;
  extern DBCStorage <SpellShapeshiftEntry>         sSpellShapeshiftStore;
- extern DBCStorage <SpellEntry>                   sSpellStore;
 +extern DBCStorage <SpellIconEntry>               sSpellIconStore;
+ extern DBCStorage <SpellEntry>                   sSpellStore;
  extern DBCStorage <StableSlotPricesEntry>        sStableSlotPricesStore;
  extern DBCStorage <SummonPropertiesEntry>        sSummonPropertiesStore;
- extern DBCStorage <TalentEntry>                  sTalentStore;
 diff --git a/src/server/game/DataStores/DBCStructure.h b/src/server/game/DataStores/DBCStructure.h
-index 092ef71..b08d458 100644
+index d1794a0..9b9cc1d 100644
 --- a/src/server/game/DataStores/DBCStructure.h
 +++ b/src/server/game/DataStores/DBCStructure.h
-@@ -1165,6 +1165,7 @@ struct ItemBagFamilyEntry
+@@ -1164,6 +1164,7 @@ struct ItemBagFamilyEntry
  struct ItemDisplayInfoEntry
  {
      uint32      ID;                                         // 0        m_ID
-+    char* inventoryIcon;                                    // [1]
++    char*       inventoryIcon;
                                                              // 1        m_modelName[2]
                                                              // 2        m_modelTexture[2]
                                                              // 3        m_inventoryIcon
-@@ -1856,6 +1857,12 @@ struct SpellItemEnchantmentConditionEntry
+@@ -1865,6 +1866,12 @@ struct SpellItemEnchantmentConditionEntry
      //uint8   Logic[5]                                      // 25-30    m_logic[5]
  };
  
@@ -141,7 +142,7 @@ index 092ef71..b08d458 100644
  {
      uint32 Slot;
 diff --git a/src/server/game/DataStores/DBCfmt.h b/src/server/game/DataStores/DBCfmt.h
-index 5c24e6f..6bdc0d6 100644
+index aade6d9..823f778 100644
 --- a/src/server/game/DataStores/DBCfmt.h
 +++ b/src/server/game/DataStores/DBCfmt.h
 @@ -73,7 +73,7 @@ char const GtRegenMPPerSptfmt[] = "f";
@@ -153,7 +154,7 @@ index 5c24e6f..6bdc0d6 100644
  //char const ItemCondExtCostsEntryfmt[] = "xiii";
  char const ItemExtendedCostEntryfmt[] = "niiiiiiiiiiiiiix";
  char const ItemLimitCategoryEntryfmt[] = "nxxxxxxxxxxxxxxxxxii";
-@@ -118,6 +118,7 @@ char const SpellRadiusfmt[] = "nfff";
+@@ -120,6 +120,7 @@ char const SpellRadiusfmt[] = "nfff";
  char const SpellRangefmt[] = "nffffixxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
  char const SpellRuneCostfmt[] = "niiii";
  char const SpellShapeshiftfmt[] = "nxxxxxxxxxxxxxxxxxxiixiiixxiiiiiiii";
@@ -162,10 +163,12 @@ index 5c24e6f..6bdc0d6 100644
  char const SummonPropertiesfmt[] = "niiiii";
  char const TalentEntryfmt[] = "niiiiiiiixxxxixxixxxxxx";
 diff --git a/src/server/game/Entities/Creature/Creature.cpp b/src/server/game/Entities/Creature/Creature.cpp
-index 8ac54d5..b647514 100644
+index 31320e4..aee431d 100644
 --- a/src/server/game/Entities/Creature/Creature.cpp
 +++ b/src/server/game/Entities/Creature/Creature.cpp
-@@ -50,6 +50,7 @@
+@@ -48,10 +48,11 @@
+ #include "WorldPacket.h"
+ #ifdef ELUNA
  #include "LuaEngine.h"
  #endif
  #include "Transport.h"
@@ -173,7 +176,11 @@ index 8ac54d5..b647514 100644
  
  TrainerSpell const* TrainerSpellData::Find(uint32 spell_id) const
  {
-@@ -330,6 +331,11 @@ bool Creature::InitEntry(uint32 entry, CreatureData const* data /*= nullptr*/)
+     TrainerSpellMap::const_iterator itr = spellList.find(spell_id);
+     if (itr != spellList.end())
+@@ -371,10 +372,15 @@ bool Creature::InitEntry(uint32 entry, CreatureData const* data /*= nullptr*/)
+     {
+         TC_LOG_ERROR("sql.sql", "Creature (Entry: %u) has invalid model %u defined in table `creature_template`, can't load.", entry, displayID);
          return false;
      }
  
@@ -185,7 +192,11 @@ index 8ac54d5..b647514 100644
      SetDisplayId(displayID);
      SetNativeDisplayId(displayID);
      SetByteValue(UNIT_FIELD_BYTES_0, 2, minfo->gender);
-@@ -392,7 +398,10 @@ bool Creature::UpdateEntry(uint32 entry, CreatureData const* data /*= nullptr*/)
+ 
+     // Load creature equipment
+@@ -433,11 +439,14 @@ bool Creature::UpdateEntry(uint32 entry, CreatureData const* data /*= nullptr*/)
+         SetUInt32Value(UNIT_NPC_FLAGS, npcflag | sGameEventMgr->GetNPCFlag(this));
+     else
          SetUInt32Value(UNIT_NPC_FLAGS, npcflag);
  
      SetUInt32Value(UNIT_FIELD_FLAGS, unit_flags);
@@ -197,8 +208,10 @@ index 8ac54d5..b647514 100644
  
      SetUInt32Value(UNIT_DYNAMIC_FLAGS, dynamicflags);
  
+     RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IN_COMBAT);
+
 diff --git a/src/server/game/Entities/Pet/Pet.cpp b/src/server/game/Entities/Pet/Pet.cpp
-index 57fc56a..4462bd7 100644
+index 0da63c5..bcc9efd 100644
 --- a/src/server/game/Entities/Pet/Pet.cpp
 +++ b/src/server/game/Entities/Pet/Pet.cpp
 @@ -31,6 +31,7 @@
@@ -218,7 +231,7 @@ index 57fc56a..4462bd7 100644
      InitTalentForLevel();                                   // set original talents points before spell loading
  
      uint32 timediff = uint32(time(NULL) - fields[14].GetUInt32());
-@@ -510,6 +513,8 @@ void Pet::DeleteFromDB(uint32 guidlow)
+@@ -510,6 +513,8 @@ void Pet::DeleteFromDB(ObjectGuid::LowType guidlow)
      trans->Append(stmt);
  
      CharacterDatabase.CommitTransaction(trans);
@@ -228,7 +241,7 @@ index 57fc56a..4462bd7 100644
  
  void Pet::setDeathState(DeathState s)                       // overwrite virtual Creature::setDeathState and Unit::setDeathState
 diff --git a/src/server/game/Entities/Unit/StatSystem.cpp b/src/server/game/Entities/Unit/StatSystem.cpp
-index fb27fea..9aac24d 100644
+index a8e13a9..b1e6c2b 100644
 --- a/src/server/game/Entities/Unit/StatSystem.cpp
 +++ b/src/server/game/Entities/Unit/StatSystem.cpp
 @@ -24,6 +24,7 @@
@@ -297,16 +310,16 @@ index fb27fea..9aac24d 100644
      float variance = 1.0f;
      UnitMods unitMod;
      switch (attType)
-@@ -1105,6 +1124,9 @@ bool Guardian::UpdateStats(Stats stat)
-     if (stat >= MAX_STATS)
-         return false;
+@@ -1102,6 +1121,9 @@ void Creature::CalculateMinMaxDamage(WeaponAttackType attType, bool normalized,
  
+ bool Guardian::UpdateStats(Stats stat)
+ {
 +    if (GetScriptName() == sMercenaryMgr->GetAIName())
 +        return false;
 +
-     // value = ((base_value * base_pct) + total_value) * total_pct
-     float value  = GetTotalStatValue(stat);
-     ApplyStatBuffMod(stat, m_statFromOwner[stat], false);
+     if (stat >= MAX_STATS)
+         return false;
+ 
 @@ -1197,6 +1219,9 @@ bool Guardian::UpdateStats(Stats stat)
  
  bool Guardian::UpdateAllStats()
@@ -347,41 +360,46 @@ index fb27fea..9aac24d 100644
      UnitMods unitMod = UnitMods(UNIT_MOD_POWER_START + power);
  
      float addValue = (power == POWER_MANA) ? GetStat(STAT_INTELLECT) - GetCreateStat(STAT_INTELLECT) : 0.0f;
-@@ -1298,6 +1332,9 @@ void Guardian::UpdateAttackPowerAndDamage(bool ranged)
+@@ -1295,6 +1329,9 @@ void Guardian::UpdateMaxPower(Powers power)
+ 
+ void Guardian::UpdateAttackPowerAndDamage(bool ranged)
+ {
++    if (GetScriptName() == sMercenaryMgr->GetAIName())
++        return;
++
      if (ranged)
          return;
  
+@@ -1383,6 +1420,9 @@ void Guardian::UpdateAttackPowerAndDamage(bool ranged)
+ 
+ void Guardian::UpdateDamagePhysical(WeaponAttackType attType)
+ {
 +    if (GetScriptName() == sMercenaryMgr->GetAIName())
 +        return;
 +
-     float val = 0.0f;
-     float bonusAP = 0.0f;
-     UnitMods unitMod = UNIT_MOD_ATTACK_POWER;
-@@ -1386,6 +1423,9 @@ void Guardian::UpdateDamagePhysical(WeaponAttackType attType)
      if (attType > BASE_ATTACK)
          return;
  
-+    if (GetScriptName() == sMercenaryMgr->GetAIName())
-+        return;
-+
-     float bonusDamage = 0.0f;
-     if (m_owner->GetTypeId() == TYPEID_PLAYER)
-     {
 diff --git a/src/server/game/Handlers/MiscHandler.cpp b/src/server/game/Handlers/MiscHandler.cpp
-index 52dc2ad..60ca1c5 100644
+index 758d5af..f2f26bb 100644
 --- a/src/server/game/Handlers/MiscHandler.cpp
 +++ b/src/server/game/Handlers/MiscHandler.cpp
-@@ -112,7 +112,7 @@ void WorldSession::HandleGossipSelectOptionOpcode(WorldPacket& recvData)
+@@ -111,11 +111,11 @@ void WorldSession::HandleGossipSelectOptionOpcode(WorldPacket& recvData)
+ #ifdef ELUNA
+     Item* item = NULL;
  #endif
      Creature* unit = NULL;
      GameObject* go = NULL;
 -    if (guid.IsCreatureOrVehicle())
-+    if (guid.IsCreatureOrVehicle() || guid.IsCreatureOrPet())
++    if ((guid.IsCreatureOrVehicle() || guid.IsCreatureOrPet()))
      {
          unit = GetPlayer()->GetNPCIfCanInteractWith(guid, UNIT_NPC_FLAG_NONE);
          if (!unit)
+         {
+             TC_LOG_DEBUG("network", "WORLD: HandleGossipSelectOptionOpcode - %s not found or you can't interact with him.", guid.ToString().c_str());
+
 diff --git a/src/server/game/Handlers/SpellHandler.cpp b/src/server/game/Handlers/SpellHandler.cpp
-index 0f0640e..ac9859f 100644
+index 0943d9d..882aedb 100644
 --- a/src/server/game/Handlers/SpellHandler.cpp
 +++ b/src/server/game/Handlers/SpellHandler.cpp
 @@ -31,6 +31,7 @@
@@ -433,31 +451,11 @@ index 0f0640e..ac9859f 100644
      if (!unit->HasAuraType(SPELL_AURA_CLONE_CASTER))
          return;
  
-diff --git a/src/server/game/Scripting/ScriptLoader.cpp b/src/server/game/Scripting/ScriptLoader.cpp
-index 7c4b117..6251aee 100644
---- a/src/server/game/Scripting/ScriptLoader.cpp
-+++ b/src/server/game/Scripting/ScriptLoader.cpp
-@@ -1415,13 +1415,13 @@ void AddBattlegroundScripts()
- 
- #ifdef SCRIPTS
- /* This is where custom scripts' loading functions should be declared. */
--
-+    void MercenarySetup();
- #endif
- 
- void AddCustomScripts()
- {
- #ifdef SCRIPTS
-     /* This is where custom scripts should be added. */
--
-+    MercenarySetup();
- #endif
- }
 diff --git a/src/server/game/Server/WorldSession.cpp b/src/server/game/Server/WorldSession.cpp
-index 02fec47..c576207 100644
+index c380c1a..9fb89f3 100644
 --- a/src/server/game/Server/WorldSession.cpp
 +++ b/src/server/game/Server/WorldSession.cpp
-@@ -1390,6 +1390,7 @@ uint32 WorldSession::DosProtection::GetMaxPacketCounterAllowed(uint16 opcode) co
+@@ -1458,6 +1458,7 @@ uint32 WorldSession::DosProtection::GetMaxPacketCounterAllowed(uint16 opcode) co
          case CMSG_BEGIN_TRADE:                          //   0               2.5
          case CMSG_INITIATE_TRADE:                       //   0               3
          case CMSG_MESSAGECHAT:                          //   0               3.5
