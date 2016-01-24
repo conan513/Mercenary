@@ -1,3 +1,8 @@
+1/24/2015
+General
+- Updated diffs to the most recent rev/commit.
+- Removed ScriptLoader.cpp addition in the diff as that can cause conflicts if you have already edited that file. To combat this I updated the Finalized Installation portion of the TrinityCore and Eluna WotLK tutorials with a reminder of setting up mercenary_gossip.cpp in ScriptLoader.cpp.
+
 12/1/2015
 General
 - TrinityCore diff is now updated
