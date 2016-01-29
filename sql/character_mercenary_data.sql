@@ -118,3 +118,84 @@ CREATE TABLE `mercenary_world` (
 -- Records of mercenary_world
 -- ----------------------------
 INSERT INTO `mercenary_world` VALUES ('70001', '49', '1', '0');
+
+-- ----------------------------
+-- Table structure for mercenary_proficiencies
+-- ----------------------------
+DROP TABLE IF EXISTS `mercenary_proficiencies`;
+CREATE TABLE `mercenary_proficiencies` (
+  `type` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT 'Mercenary Type',
+  `armor_prof` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT 'Armor Proficiency, Armor Subclass',
+  `weapon_prof` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT 'Weapon Proficiency, Item SubClass'
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- ----------------------------
+-- Records of mercenary_proficiencies
+-- ----------------------------
+INSERT INTO `mercenary_proficiencies` VALUES ('1', '4', '0');
+INSERT INTO `mercenary_proficiencies` VALUES ('2', '4', '0');
+INSERT INTO `mercenary_proficiencies` VALUES ('4', '4', '0');
+INSERT INTO `mercenary_proficiencies` VALUES ('8', '3', '0');
+INSERT INTO `mercenary_proficiencies` VALUES ('10', '3', '0');
+INSERT INTO `mercenary_proficiencies` VALUES ('7', '2', '0');
+INSERT INTO `mercenary_proficiencies` VALUES ('9', '2', '0');
+INSERT INTO `mercenary_proficiencies` VALUES ('3', '1', '0');
+INSERT INTO `mercenary_proficiencies` VALUES ('6', '1', '0');
+INSERT INTO `mercenary_proficiencies` VALUES ('5', '1', '0');
+INSERT INTO `mercenary_proficiencies` VALUES ('1', '0', '0');
+INSERT INTO `mercenary_proficiencies` VALUES ('1', '0', '1');
+INSERT INTO `mercenary_proficiencies` VALUES ('1', '0', '4');
+INSERT INTO `mercenary_proficiencies` VALUES ('1', '0', '5');
+INSERT INTO `mercenary_proficiencies` VALUES ('1', '0', '6');
+INSERT INTO `mercenary_proficiencies` VALUES ('1', '0', '7');
+INSERT INTO `mercenary_proficiencies` VALUES ('1', '0', '8');
+INSERT INTO `mercenary_proficiencies` VALUES ('2', '0', '4');
+INSERT INTO `mercenary_proficiencies` VALUES ('2', '0', '5');
+INSERT INTO `mercenary_proficiencies` VALUES ('2', '0', '7');
+INSERT INTO `mercenary_proficiencies` VALUES ('2', '0', '8');
+INSERT INTO `mercenary_proficiencies` VALUES ('2', '0', '15');
+INSERT INTO `mercenary_proficiencies` VALUES ('3', '0', '4');
+INSERT INTO `mercenary_proficiencies` VALUES ('3', '0', '7');
+INSERT INTO `mercenary_proficiencies` VALUES ('3', '0', '10');
+INSERT INTO `mercenary_proficiencies` VALUES ('3', '0', '19');
+INSERT INTO `mercenary_proficiencies` VALUES ('4', '0', '0');
+INSERT INTO `mercenary_proficiencies` VALUES ('4', '0', '1');
+INSERT INTO `mercenary_proficiencies` VALUES ('4', '0', '4');
+INSERT INTO `mercenary_proficiencies` VALUES ('4', '0', '5');
+INSERT INTO `mercenary_proficiencies` VALUES ('4', '0', '6');
+INSERT INTO `mercenary_proficiencies` VALUES ('4', '0', '7');
+INSERT INTO `mercenary_proficiencies` VALUES ('4', '0', '8');
+INSERT INTO `mercenary_proficiencies` VALUES ('3', '0', '15');
+INSERT INTO `mercenary_proficiencies` VALUES ('5', '0', '4');
+INSERT INTO `mercenary_proficiencies` VALUES ('5', '0', '7');
+INSERT INTO `mercenary_proficiencies` VALUES ('5', '0', '10');
+INSERT INTO `mercenary_proficiencies` VALUES ('5', '0', '19');
+INSERT INTO `mercenary_proficiencies` VALUES ('5', '0', '15');
+INSERT INTO `mercenary_proficiencies` VALUES ('6', '0', '4');
+INSERT INTO `mercenary_proficiencies` VALUES ('6', '0', '7');
+INSERT INTO `mercenary_proficiencies` VALUES ('6', '0', '10');
+INSERT INTO `mercenary_proficiencies` VALUES ('6', '0', '19');
+INSERT INTO `mercenary_proficiencies` VALUES ('6', '0', '15');
+INSERT INTO `mercenary_proficiencies` VALUES ('7', '0', '4');
+INSERT INTO `mercenary_proficiencies` VALUES ('7', '0', '5');
+INSERT INTO `mercenary_proficiencies` VALUES ('7', '0', '6');
+INSERT INTO `mercenary_proficiencies` VALUES ('7', '0', '10');
+INSERT INTO `mercenary_proficiencies` VALUES ('7', '0', '15');
+INSERT INTO `mercenary_proficiencies` VALUES ('7', '0', '17');
+INSERT INTO `mercenary_proficiencies` VALUES ('8', '0', '0');
+INSERT INTO `mercenary_proficiencies` VALUES ('8', '0', '2');
+INSERT INTO `mercenary_proficiencies` VALUES ('8', '0', '3');
+INSERT INTO `mercenary_proficiencies` VALUES ('8', '0', '6');
+INSERT INTO `mercenary_proficiencies` VALUES ('8', '0', '7');
+INSERT INTO `mercenary_proficiencies` VALUES ('8', '0', '13');
+INSERT INTO `mercenary_proficiencies` VALUES ('8', '0', '18');
+INSERT INTO `mercenary_proficiencies` VALUES ('9', '0', '0');
+INSERT INTO `mercenary_proficiencies` VALUES ('9', '0', '4');
+INSERT INTO `mercenary_proficiencies` VALUES ('9', '0', '7');
+INSERT INTO `mercenary_proficiencies` VALUES ('9', '0', '13');
+INSERT INTO `mercenary_proficiencies` VALUES ('9', '0', '15');
+INSERT INTO `mercenary_proficiencies` VALUES ('10', '0', '0');
+INSERT INTO `mercenary_proficiencies` VALUES ('10', '0', '4');
+INSERT INTO `mercenary_proficiencies` VALUES ('10', '0', '10');
+INSERT INTO `mercenary_proficiencies` VALUES ('10', '0', '13');
+INSERT INTO `mercenary_proficiencies` VALUES ('10', '0', '15');

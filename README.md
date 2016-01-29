@@ -2,9 +2,9 @@
 
 ##About
 
-The Mercenary System for [TrinityCore](http://www.trinitycore.org/) and [MaNGOS](http://getmangos.eu/) is intended as a follower type system for your character. 
+The Mercenary System for [Eluna TrinityCore WotLK](https://github.com/ElunaLuaEngine/ElunaTrinityWotlk), [TrinityCore](http://www.trinitycore.org/) and [MaNGOS](http://getmangos.eu/) is intended as a follower type system for your character. 
 You will be able to gear your Mercenary fully, like you can your own character. Mercenaries will be a bit more powerful than your character for strategically soloing most content. 
-Interact with your Mercenary, changing its skills, name and more.
+Interact with your Mercenary, changing its skills, name and more. If you want more information go to our [Wiki] (https://github.com/EmuDevs/Mercenary/wiki).
 
 Follow us on [EmuDevs Twitter](https://twitter.com/EmuDevs) page for news.
 Subscribe on [EmuDevs Youtube] (https://www.youtube.com/user/EmuDevs) channel for videos of this project.
@@ -31,7 +31,7 @@ This system requires core changes. Below you will find appropriate installation 
 * [Tommy (Easelm)](https://github.com/Easelm)
 * [Foereaper](https://github.com/Foereaper)
 * [Rochet2](https://github.com/Rochet2)
-* [Laintime](https://github.com/Laintime) (Reported Issues)
 * [EmuDevs Community] (http://emudevs.com)
 * [MaNGOS](http://getmangos.eu/)
 * [TrinityCore](http://www.trinitycore.org/)
+* To all that reported issues.

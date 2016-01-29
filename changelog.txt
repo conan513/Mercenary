@@ -1,3 +1,13 @@
+1/28/2015
+General
+- Updated README
+- Reworked proficiency check. Instead of armor and weapon proficiency checks being in a huge boolean I decided they should have their own table so you can decide what Mercenary type can equip what. This comes with a new table mercenary_proficiencies so don't forget to add it to your database. Default data is already added for all Mercenary types.
+- Mercenary Edit Slot now has a more practical value instead of -1(255)
+- Reworked some error messages and corrected typos
+- Corrected comment for GetMercenary as the information given was invalid
+- Removed some unnecessary code and compact the error messages better without the need for another line of code to complete the sayings
+- After equpping items on your Mercenary it will no longer add or remove your items. This was removed due to a crash related to DestroyItemCount. This feature might be added later in the future
+
 1/24/2015
 General
 - Updated diffs to the most recent rev/commit.

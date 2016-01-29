@@ -13,6 +13,7 @@
 typedef std::vector<MercenarySpell> MercenarySpells;
 typedef std::vector<MercenaryStarterGear> MercenaryStartGear;
 typedef std::vector<MercenaryTalking> MercenaryTalk;
+typedef std::vector<MercenaryProficiency> MercenaryProficiencies;
 typedef std::unordered_map<uint32, Mercenary*> MercenaryMap;
 typedef std::unordered_map<uint32, MercenaryWorld> MercenaryWorldMap;
 
@@ -123,7 +124,7 @@ public:
     }
 
     /*
-    * Returns Mercenary's class by search for pet's guid
+    * Returns Mercenary by player guidLow
     */
     Mercenary* GetMercenary(uint32 Id)
     {
@@ -202,6 +203,46 @@ public:
         return nullptr;
     }
 
+    /*
+    * Returns true if the Mercenary type can use that armor or weapon proficiency
+    * If for example armor proficiency column is 0 and weapon proficiency column contains
+    *     a value, that row will be loaded (considered) as weapon proficiency. Vice versa is implied here.
+    */
+    bool CheckProficiencies(uint8 type, uint32 itemClass, uint32 itemSubClass)
+    {
+        bool check = false;
+        for (auto& itr : MercenaryProficiencyContainer)
+        {
+            if (itr.type != type)
+                continue;
+
+            if (itemClass == ITEM_CLASS_ARMOR)
+            {
+                if (itr.armorSubClass == 0 && !(itr.armorSubClass == 0 && itr.weaponSubClass == 0))
+                    continue;
+
+                if (itr.armorSubClass == itemSubClass)
+                {
+                    check = true;
+                    break;
+                }
+            }
+            else if (itemClass == ITEM_CLASS_WEAPON)
+            {
+                if (itr.weaponSubClass == 0 && !(itr.weaponSubClass == 0 && itr.armorSubClass == 0))
+                    continue;
+
+                if (itr.weaponSubClass == itemSubClass)
+                {
+                    check = true;
+                    break;
+                }
+            }
+        }
+
+        return check;
+    }
+
     Random random;
 
 private:
@@ -210,6 +251,7 @@ private:
 
     MercenarySpells MercenarySpellsContainer;
     MercenaryStartGear MercenaryStartGearContainer;
+    MercenaryProficiencies MercenaryProficiencyContainer;
     MercenaryMap MercenaryContainer;
     MercenaryTalk MercenaryTalkContainer;
     MercenaryWorldMap MercenaryWorldContainer;

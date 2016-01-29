@@ -67,6 +67,13 @@ struct MercenaryWorld
     uint8 gender;
 };
 
+struct MercenaryProficiency
+{
+    uint8 type;
+    uint32 armorSubClass;
+    uint32 weaponSubClass;
+};
+
 struct RandomMercenary
 {
     uint32 model;
@@ -104,7 +111,9 @@ enum MercenaryRoles
     ROLE_CASTER_DPS,
     ROLE_MARKSMAN_DPS,
     ROLE_HEALER,
-    ROLE_TANK
+    ROLE_TANK,
+
+    MAX_MERCENARY_ROLES
 };
 
 enum RaceModels
@@ -132,7 +141,6 @@ enum RaceModels
 };
 
 #define MERCENARY_DEFAULT_ENTRY 70000
-#define MERCENARY_MAX_SPELLS 4
 
 class Mercenary
 {

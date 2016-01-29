@@ -501,7 +501,7 @@ public:
         WorldSession* session = player->GetSession();
         if (mercenary)
         {
-            if (mercenary->GetEditSlot() > -1)
+            if (mercenary->GetEditSlot() != SLOT_EMPTY)
             {
                 std::vector<uint32> tempVector = mercenary->GetEquippableItems(player, mercenary->GetEditSlot());
                 for (auto itr = tempVector.begin(); itr != tempVector.end(); ++itr)
@@ -516,7 +516,7 @@ public:
                             else
                             {
                                 ChatHandler(session).PSendSysMessage("Successfully equipped %s to your Mercenary!", sMercenaryMgr->GetItemLink(item->GetEntry(), session).c_str());
-                                mercenary->SetEditSlot(-1);
+                                mercenary->SetEditSlot(SLOT_EMPTY);
                                 return false;
                             }
                         }
@@ -743,8 +743,8 @@ public:
 
     void SendEquipGear(Player* player, Creature* creature, Mercenary* mercenary)
     {
-        if (mercenary->GetEditSlot() != -1)
-            mercenary->SetEditSlot(-1);
+        if (mercenary->GetEditSlot() != SLOT_EMPTY)
+            mercenary->SetEditSlot(SLOT_EMPTY);
         player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, sMercenaryMgr->GetSlotIcon(SLOT_HEAD) + sMercenaryMgr->GetSlotName(SLOT_HEAD), 0, 14);
         player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, sMercenaryMgr->GetSlotIcon(SLOT_SHOULDERS) + sMercenaryMgr->GetSlotName(SLOT_SHOULDERS), 0, 13);
         player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, sMercenaryMgr->GetSlotIcon(SLOT_HANDS) + sMercenaryMgr->GetSlotName(SLOT_HANDS), 0, 12);
@@ -948,9 +948,9 @@ public:
         if (mercenary)
         {
 #ifdef MANGOS
-            creature->MonsterSay("I thought you wanted me as your Mercenary? Well, why do you have a Mercenary already!?..", LANG_UNIVERSAL);
+            creature->MonsterSay("I thought you wanted me as your Mercenary? Get rid of your existing Mercenary!", LANG_UNIVERSAL);
 #else
-            creature->Say("I thought you wanted me as your Mercenary? Well, why do you have a Mercenary already!?..", LANG_UNIVERSAL);
+            creature->Say("I thought you wanted me as your Mercenary? Get rid of your existing Mercenary!", LANG_UNIVERSAL);
 #endif
             player->CLOSE_GOSSIP_MENU();
             return false;

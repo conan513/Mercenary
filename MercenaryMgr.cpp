@@ -113,6 +113,22 @@ void MercenaryMgr::LoadMercenaries()
         } while (result->NextRow());
     }
 
+    result = CharacterDatabase.Query("SELECT type, armor_prof, weapon_prof FROM mercenary_proficiencies");
+    if (result)
+    {
+        do
+        {
+            Field* field = result->Fetch();
+
+            MercenaryProficiency prof;
+            prof.type = field[0].GetUInt8();
+            prof.armorSubClass = uint32(field[1].GetUInt8());
+            prof.weaponSubClass = uint32(field[2].GetUInt8());
+
+            MercenaryProficiencyContainer.push_back(prof);
+        } while (result->NextRow());
+    }
+
     result = CharacterDatabase.Query("SELECT Id, ownerGUID, role, displayId, race, gender, type, summoned FROM mercenaries");
     if (result)
     {

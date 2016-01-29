@@ -253,13 +253,11 @@ bool Mercenary::Create(Player* player, uint32 model, uint8 r, uint8 g, uint8 mer
 
     ChatHandler(player->GetSession()).SendSysMessage("Successfully created a mercenary!");
 #ifndef MANGOS
-    pet->Say("Thanks for choosing me as your mercenary! If you need help or if you want to change what I do, talk to me.", LANG_UNIVERSAL, player);
-    pet->Say("Don't forget to setup my skills, actions and gear!", LANG_UNIVERSAL, player);
+    pet->Say("Thanks for choosing me as your mercenary! Talk to me to setup my skills, gear, etc.", LANG_UNIVERSAL, player);
 #else
-    pet->MonsterSay("Thanks for choosing me as your mercenary! If you need help or if you want to change what I do, talk to me.", LANG_UNIVERSAL, player);
-    pet->MonsterSay("Don't forget to setup my skills, actions and gear!", LANG_UNIVERSAL, player);
+    pet->MonsterSay("Thanks for choosing me as your mercenary! Talk to me to setup my skills, gear, etc.", LANG_UNIVERSAL, player);
 #endif
-    editSlot = -1;
+    editSlot = SLOT_EMPTY;
     summoned = true;
     beingCreated = false;
 
@@ -398,10 +396,7 @@ bool Mercenary::CanEquipItem(Player* player, Item* item)
 {
     WorldSession* session = player->GetSession();
     if (!item)
-    {
-        ChatHandler(session).SendSysMessage("Item not found! Your mercenary could not equip this item.");
         return false;
-    }
 
 #ifndef MANGOS
     const ItemTemplate* proto = item->GetTemplate();
@@ -412,9 +407,9 @@ bool Mercenary::CanEquipItem(Player* player, Item* item)
     {
         ChatHandler(session).SendSysMessage("Invalid item! Your mercenary could not equip this item.");
 #ifndef MANGOS
-        TC_LOG_ERROR("misc", "Mercenary tried to equip invalid item %u. Item does not have a template.", item->GetEntry());
+        TC_LOG_ERROR("misc", "Tried to equip invalid item %u. Item does not have a template.", item->GetEntry());
 #else
-        sLog.outError("Mercenary tried to equip invalid item %u.Item does not have a template.", item->GetEntry());
+        sLog.outError("Tried to equip invalid item %u.Item does not have a template.", item->GetEntry());
 #endif
         return false;
     }
@@ -426,40 +421,24 @@ bool Mercenary::CanEquipItem(Player* player, Item* item)
     uint32 itemClass = proto->Class;
     uint32 itemSubClass = proto->SubClass;
     uint32 invType = proto->InventoryType;
-    bool isCorrectArmor = ((type == MERCENARY_TYPE_WARRIOR || type == MERCENARY_TYPE_PALADIN || type == MERCENARY_TYPE_DK) &&
-        itemSubClass == ITEM_SUBCLASS_ARMOR_PLATE) || ((type == MERCENARY_TYPE_HUNTER || type == MERCENARY_TYPE_SHAMAN) &&
-        itemSubClass == ITEM_SUBCLASS_ARMOR_MAIL) || ((type == MERCENARY_TYPE_PRIEST || type == MERCENARY_TYPE_MAGE ||
-        type == MERCENARY_TYPE_WARLOCK) && itemSubClass == ITEM_SUBCLASS_ARMOR_CLOTH) || ((type == MERCENARY_TYPE_DRUID ||
-        type == MERCENARY_TYPE_ROGUE) && itemSubClass == ITEM_SUBCLASS_ARMOR_LEATHER);
-    bool isCorrectWeapon = role == ROLE_MELEE_DPS && ((type == MERCENARY_TYPE_WARRIOR || type == MERCENARY_TYPE_PALADIN ||
-        role == ROLE_MELEE_DPS && ((type == MERCENARY_TYPE_ROGUE || type == MERCENARY_TYPE_SHAMAN) && invType == INVTYPE_WEAPON ||
-        invType == INVTYPE_WEAPONMAINHAND) || type == MERCENARY_TYPE_DK || type == MERCENARY_TYPE_DRUID) && invType == INVTYPE_2HWEAPON) || role == ROLE_TANK &&
-        ((type == MERCENARY_TYPE_WARRIOR || type == MERCENARY_TYPE_PALADIN || type == MERCENARY_TYPE_DK) && invType == INVTYPE_WEAPON || invType == INVTYPE_WEAPONMAINHAND ||
-        invType == INVTYPE_SHIELD) || role == ROLE_TANK && ((type == MERCENARY_TYPE_DRUID) && invType == INVTYPE_2HWEAPON) || role == ROLE_CASTER_DPS &&
-        ((type == MERCENARY_TYPE_PRIEST || type == MERCENARY_TYPE_WARLOCK || type == MERCENARY_TYPE_MAGE || type == MERCENARY_TYPE_DRUID) && invType == INVTYPE_WEAPON ||
-        invType == INVTYPE_HOLDABLE || invType == INVTYPE_WEAPONMAINHAND || (invType == INVTYPE_2HWEAPON && itemSubClass == ITEM_SUBCLASS_WEAPON_STAFF)) || (role == ROLE_CASTER_DPS ||
-        role == ROLE_HEALER) && ((type == MERCENARY_TYPE_SHAMAN || type == MERCENARY_TYPE_PALADIN) && invType == INVTYPE_WEAPON || invType == INVTYPE_WEAPONMAINHAND ||
-        invType == INVTYPE_SHIELD) || role == ROLE_HEALER && ((type == MERCENARY_TYPE_PALADIN || type == MERCENARY_TYPE_SHAMAN) && invType == INVTYPE_WEAPON || invType == INVTYPE_SHIELD ||
-        invType == INVTYPE_WEAPONMAINHAND) || role == ROLE_HEALER && ((type == MERCENARY_TYPE_DRUID || type == MERCENARY_TYPE_PRIEST) && invType == INVTYPE_WEAPON ||
-        (invType == INVTYPE_2HWEAPON && itemSubClass == ITEM_SUBCLASS_WEAPON_STAFF) || invType == INVTYPE_HOLDABLE) || role == ROLE_MARKSMAN_DPS && ((type == MERCENARY_TYPE_HUNTER) &&
-        invType == INVTYPE_WEAPON || invType == INVTYPE_WEAPONMAINHAND || invType == INVTYPE_RANGED || (invType == INVTYPE_2HWEAPON && (itemSubClass == ITEM_SUBCLASS_WEAPON_POLEARM ||
-        itemSubClass == ITEM_SUBCLASS_WEAPON_SPEAR)));
-    bool isCorrectLevel = pet->getLevel() < proto->RequiredLevel;
-    if (proto->RequiredLevel > 0 && isCorrectLevel)
+    bool isCorrectArmor = sMercenaryMgr->CheckProficiencies(type, itemClass, itemSubClass);
+    bool isCorrectWeapon = sMercenaryMgr->CheckProficiencies(type, itemClass, itemSubClass);
+    bool isCorrectLevel = pet->getLevel() >= proto->RequiredLevel;
+    if (proto->RequiredLevel > 0 && !isCorrectLevel)
     {
-        ChatHandler(session).PSendSysMessage("Equip item failed! Item level is too high. You can equip this item to a Mercenary when they are level %u.", proto->RequiredLevel);
+        ChatHandler(session).PSendSysMessage("Equip item failed! Item level is too high. You can equip this item on your Mercenary when they are level %u.", proto->RequiredLevel);
         return false;
     }
 
     if (itemClass == ITEM_CLASS_ARMOR && (invType != INVTYPE_SHIELD && invType != INVTYPE_HOLDABLE) && !isCorrectArmor)
     {
-        ChatHandler(session).SendSysMessage("Equip item failed! Your Mercenary cannot equip this armor type.");
+        ChatHandler(session).SendSysMessage("Equip failed. Mercenary cannot equip this armor proficiency.");
         return false;
     }
 
     if ((itemClass == ITEM_CLASS_WEAPON || (itemClass == ITEM_CLASS_ARMOR && (invType == INVTYPE_SHIELD || invType == INVTYPE_HOLDABLE))) && !isCorrectWeapon)
     {
-        ChatHandler(session).SendSysMessage("Equip item failed! Your Mercenary cannot equip this weapon type. Make sure your Mercenary's role can use this weapon.");
+        ChatHandler(session).SendSysMessage("Equip failed. Mercenary cannot equip this weapon proficiency.");
         return false;
     }
 
@@ -467,7 +446,7 @@ bool Mercenary::CanEquipItem(Player* player, Item* item)
     {
         if (invType != INVTYPE_2HWEAPON && invType != INVTYPE_WEAPONMAINHAND && invType != INVTYPE_WEAPON)
         {
-            ChatHandler(session).SendSysMessage("Equip item failed! Cannot equip an off hand weapon in your Mercenary's main hand.");
+            ChatHandler(session).SendSysMessage("Equip failed. Cannot equip an off hand weapon in your Mercenary's main hand.");
             return false;
         }
     }
@@ -475,21 +454,18 @@ bool Mercenary::CanEquipItem(Player* player, Item* item)
     {
         if (invType == INVTYPE_2HWEAPON && invType == INVTYPE_WEAPONMAINHAND && invType == INVTYPE_WEAPON)
         {
-            ChatHandler(session).SendSysMessage("Equip item failed! Cannot equip a two handed, main hand or one handed in your Mercenary's off hand.");
+            ChatHandler(session).SendSysMessage("Equip failed. Cannot equip a two handed, main hand or one handed in your Mercenary's off hand.");
             return false;
         }
     }
 
-    uint32 oldItemId = 0;
+    uint32 newItemId = item->GetEntry();
     for (auto itr = GearContainer.begin(); itr != GearContainer.end(); ++itr)
     {
         if (itemClass == ITEM_CLASS_ARMOR || itemClass == ITEM_CLASS_WEAPON)
         {
             if (itr->slot == editSlot)
-            {
-                oldItemId = itr->itemId;
-                itr->itemId = item->GetEntry();
-            }
+                itr->itemId = newItemId;
 
             if (itr->slot == editSlot && editSlot == SLOT_MAIN_HAND)
                 pet->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID, itr->itemId);
@@ -498,26 +474,6 @@ bool Mercenary::CanEquipItem(Player* player, Item* item)
             else if (itr->slot == editSlot && editSlot == SLOT_RANGED)
                 pet->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 2, itr->itemId);
         }
-    }
-
-    if (player->HasItemCount(item->GetEntry(), 1))
-        player->DestroyItemCount(item->GetEntry(), 1, true);
-
-    // Destroy item from inventory and add the old one back (if exists)
-    if (oldItemId > 0)
-    {
-#ifdef MANGOS
-        ItemPosCountVec dest;
-        InventoryResult msg = player->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, oldItemId, 1);
-        if (msg == EQUIP_ERR_OK || !dest.empty())
-        {
-            Item* newitem = player->StoreNewItem(dest, oldItemId, true);
-            if (newitem)
-                player->SendNewItem(newitem, 1, true, false);
-        }
-#else
-        player->AddItem(oldItemId, 1);
-#endif
     }
 
     if (editSlot != SLOT_MAIN_HAND || editSlot != SLOT_OFF_HAND || editSlot != SLOT_RANGED)
@@ -540,9 +496,9 @@ bool Mercenary::InitStats(Player* player, Pet* pet)
     if (!creatureInfo)
     {
 #ifdef MANGOS
-        sLog.outError("Could not load creature info for Mercenary");
+        sLog.outError("Failed to load creature info for Mercenary");
 #else
-        TC_LOG_ERROR("misc", "Cloud not load creature info for Mercenary");
+        TC_LOG_ERROR("misc", "Failed to load creature info for Mercenary");
 #endif
         return false;
     }
