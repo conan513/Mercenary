@@ -421,8 +421,7 @@ bool Mercenary::CanEquipItem(Player* player, Item* item)
     uint32 itemClass = proto->Class;
     uint32 itemSubClass = proto->SubClass;
     uint32 invType = proto->InventoryType;
-    bool isCorrectArmor = sMercenaryMgr->CheckProficiencies(type, itemClass, itemSubClass);
-    bool isCorrectWeapon = sMercenaryMgr->CheckProficiencies(type, itemClass, itemSubClass);
+    bool isCorrectProficiency = sMercenaryMgr->CheckProficiencies(type, itemClass, itemSubClass);
     bool isCorrectLevel = pet->getLevel() >= proto->RequiredLevel;
     if (proto->RequiredLevel > 0 && !isCorrectLevel)
     {
@@ -430,13 +429,13 @@ bool Mercenary::CanEquipItem(Player* player, Item* item)
         return false;
     }
 
-    if (itemClass == ITEM_CLASS_ARMOR && (invType != INVTYPE_SHIELD && invType != INVTYPE_HOLDABLE) && !isCorrectArmor)
+    if (itemClass == ITEM_CLASS_ARMOR && (invType != INVTYPE_SHIELD && invType != INVTYPE_HOLDABLE) && !isCorrectProficiency)
     {
         ChatHandler(session).SendSysMessage("Equip failed. Mercenary cannot equip this armor proficiency.");
         return false;
     }
 
-    if ((itemClass == ITEM_CLASS_WEAPON || (itemClass == ITEM_CLASS_ARMOR && (invType == INVTYPE_SHIELD || invType == INVTYPE_HOLDABLE))) && !isCorrectWeapon)
+    if ((itemClass == ITEM_CLASS_WEAPON || (itemClass == ITEM_CLASS_ARMOR && (invType == INVTYPE_SHIELD || invType == INVTYPE_HOLDABLE))) && !isCorrectProficiency)
     {
         ChatHandler(session).SendSysMessage("Equip failed. Mercenary cannot equip this weapon proficiency.");
         return false;
