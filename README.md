@@ -2,7 +2,7 @@
 
 ##About
 
-The Mercenary System for [Eluna TrinityCore WotLK](https://github.com/ElunaLuaEngine/ElunaTrinityWotlk), [TrinityCore](http://www.trinitycore.org/) and [MaNGOS](http://getmangos.eu/) is intended as a follower type system for your character. 
+Mercenary System for [Eluna TrinityCore WotLK](https://github.com/ElunaLuaEngine/ElunaTrinityWotlk), [TrinityCore](http://www.trinitycore.org/) and [MaNGOS](http://getmangos.eu/) is intended as a follower type system for your character. 
 You will be able to gear your Mercenary fully, like you can your own character. Mercenaries will be a bit more powerful than your character for strategically soloing most content. 
 Interact with your Mercenary, changing its skills, name and more. If you want more information go to our [Wiki] (https://github.com/EmuDevs/Mercenary/wiki).
 
